@@ -1,0 +1,31 @@
+git config --global user.name "Malm"
+git config --global user.email "kfmalm@gmail.com"
+
+	Set up the necessary Git files
+git init
+
+	Stages your README file, adding it to the list of files to be committed
+git add filnamn
+
+	Commits your files, adding the message "first commit"
+git commit -m 'first commit'
+
+	Creates a remote named "origin" pointing at your github repository
+git remote add origin https://github.com/gralm/NapalmBomber.git
+
+	Clone a repository into the current directory in terminal
+git clone https://github.com/gralm/NapalmBomber.git
+
+	Skapa fil
+touch filnamn
+
+	Ordlista:
+remote		repository stored on another computer/server.
+
+
+
+git diff
+git diff HEAD
+git push origin master
+git status
+git ls-files
