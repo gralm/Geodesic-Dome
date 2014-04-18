@@ -7,6 +7,7 @@
 
 #include "../bitmap/bitmap.h"
 #include "../defines.hpp"
+#include "../object/object.hpp"
 
 struct Tex {
     GLuint textName;
@@ -19,6 +20,7 @@ struct Tex {
 class Graphic {
 private:
     static std::vector<Tex*> textures;
+    static std::list<ObjectFN*> objs;
 
 public:
     static int createTexture(int x, int y);
@@ -29,6 +31,7 @@ public:
     static void print();
     static void display();
     static void drawRectangle(TYP xmin, TYP xmax, TYP ymin, TYP ymax, int texNum);
+    static void drawObject(ObjectFN *ofn);
 };
 
 #endif

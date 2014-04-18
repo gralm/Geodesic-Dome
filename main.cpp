@@ -7,6 +7,7 @@
 
 #include "graphic/graphic.hpp"
 #include "controller/controller.hpp"
+#include "object/object.hpp"
 
 class Graphic;
 
@@ -98,6 +99,12 @@ int main(int argc, char** argv)
     glutInitWindowSize(250, 250);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
+
+    bool hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //bool hurgickdet2 = World::removeAllObjects();
+
+    std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
+    //std::cout << "2. gick ju " << (hurgickdet2? "bra": "kasst") << std::endl;
 
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
     Graphic::createTexture(64, 64);

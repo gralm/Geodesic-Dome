@@ -27,10 +27,16 @@ void Graphic::display()
 {
     static TYP asdf = 0.0;
     asdf += 0.001;
+
+    ObjectFN *ofn = World::getAnObject();
+    ofn->print();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
     drawRectangle(asdf, asdf+1.0, 0.0, 1.0, 0);
     drawRectangle(-1.0, 0.0, asdf+0.0, asdf+1.0, 1);
+    drawObject(ofn);
+
     glFlush();
     glutSwapBuffers();
 }
@@ -45,6 +51,37 @@ void Graphic::drawRectangle(TYP xmin, TYP xmax, TYP ymin, TYP ymax, int texNum)
     glTexCoord2f(1.0, 1.0); glVertex3f(xmax, ymax, 0.0);
     glTexCoord2f(1.0, 0.0); glVertex3f(xmax, ymin, 0.0);
     glEnd();
+}
+
+void Graphic::drawObject(ObjectFN *ofn)
+{
+    int numOfFaces = 0;
+    Face *Fac_ = ofn->getFaces(numOfFaces);
+
+    for (int f=0; f<numOfFaces; f++)
+    {
+        Edge *from = Fac_[f].from;
+        glBegin(GL_QUADS); 
+        do {
+            Vec *v_ = from->fr;
+            glVertex3f(v_->x, v_->y, v_->z);
+            from = from->next;
+        } while (from != Fac_[f].from);
+        glEnd();
+    }
+
+    /*struct Face {
+    Edge *from;     // Första edgen
+    Vec Norm;       // Face Normal
+};
+
+struct Edge {
+    Vec *fr;
+    Vec *to;
+    Edge *next;
+    Edge *prev;
+    Edge *oppo;
+    Face *face;*/
 }
 
 void Graphic::close()
