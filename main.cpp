@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     Mat ori = Mat(0., 0., -1,
                   0, 1.0, 0.,
                   1.0, .0, .0);*/
-
+    cout << "Detta är subdivideringsversionen" << endl;
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(250, 250);

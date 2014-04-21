@@ -76,6 +76,13 @@ public:
 };
 
 
+	// 
+class ObjDodecahedronTriFN: public ObjectFN {
+public:
+	ObjDodecahedronTriFN(const ObjDodecahedronFN *doden);
+};
+
+
 class World {
 private:
 	static std::list<ObjectFN*> Objs;

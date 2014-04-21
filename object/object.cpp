@@ -286,6 +286,11 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 }
 
 
+ObjDodecahedronTriFN::ObjDodecahedronTriFN(const ObjDodecahedronFN *doden): ObjectFN() 
+{}
+
+
+
 //std::vector<ObjectFN*> Objs;
 //public:
 bool World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)
