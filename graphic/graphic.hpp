@@ -17,6 +17,7 @@ struct Tex {
     void print();
 };
 
+
 class Graphic {
 private:
     static std::vector<Tex*> textures;

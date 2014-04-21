@@ -6,6 +6,7 @@
 #define OBJ_CUBE						10
 #define OBJ_TRUNCATED_ICOSAHEDRON		11
 #define OBJ_TETRAHEDRON					12
+#define OBJ_DODECAHEDRON				13
 
 //#include <vector>
 #include "../defines.hpp"
@@ -68,6 +69,11 @@ public:
 	ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
 };
 
+//OBJ_DODECAHEDRON
+class ObjDodecahedronFN: public ObjectFN {
+public:
+	ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
+};
 
 
 class World {

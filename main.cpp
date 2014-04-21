@@ -87,6 +87,8 @@ void idle()
 }
 
 
+
+
 int main(int argc, char** argv)
 {
     /*Vec pos = Vec(0., 0., 2.5);
@@ -100,7 +102,9 @@ int main(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
-    bool hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //bool hurgickdet1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    bool hurgickdet1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //bool hurgickdet1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //bool hurgickdet2 = World::removeAllObjects();
 
     std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
@@ -110,7 +114,42 @@ int main(int argc, char** argv)
     Graphic::createTexture(64, 64);
     Graphic::createTexture("pics/meny.bmp");
 
+//  skrivet för att få igång normalerna
+    {    
+        GLfloat position0[] = {1.0, 1.0, 1.0, 0.0};
+        GLfloat diffuse0[] = {1.0, 0.0, 0.0, 1.0}; // Id term - Red
+        GLfloat specular0[] = {1.0, 1.0, 1.0, 1.0}; // Is term - White
+        GLfloat ambient0[] = {0.1, 0.1, 0.1, 1.0}; // Ia term - Gray
+
+
+        glClearColor(0.4, 0.4, 0.4, 1.0);
+
+        // Enable lighting and the light we have set up
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_DEPTH_TEST);
+
+        //Set lighting parameters
+        glLightfv(GL_LIGHT0, GL_POSITION, position0);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse0);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
+
+        glEnable(GL_COLOR_MATERIAL);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // Enable shading
+        glShadeModel(GL_SMOOTH);
+
+        glEnable(GL_AUTO_NORMAL);
+        glEnable(GL_NORMALIZE);
+    }
+
     glEnable(GL_TEXTURE_2D);
+    //glDisable(GL_RESCALE_NORMAL)
     glutDisplayFunc(Graphic::display);
     glutIdleFunc(idle);
     //glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);

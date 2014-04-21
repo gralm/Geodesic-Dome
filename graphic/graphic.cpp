@@ -29,7 +29,6 @@ void Graphic::display()
     asdf += 0.001;
 
     ObjectFN *ofn = World::getAnObject();
-    ofn->print();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
@@ -55,13 +54,20 @@ void Graphic::drawRectangle(TYP xmin, TYP xmax, TYP ymin, TYP ymax, int texNum)
 
 void Graphic::drawObject(ObjectFN *ofn)
 {
+    //cout << "kom hit" << endl;
+    glEnableClientState(GL_NORMAL_ARRAY);
     int numOfFaces = 0;
     Face *Fac_ = ofn->getFaces(numOfFaces);
+
+    //cout << "antal faces: " << numOfFaces << endl;
 
     for (int f=0; f<numOfFaces; f++)
     {
         Edge *from = Fac_[f].from;
-        glBegin(GL_QUADS); 
+        //glBegin(GL_QUADS); 
+        glBegin(GL_POLYGON);
+        //glBegin(GL_TRIANGLES);
+        glNormal3f(Fac_[f].Norm.x, Fac_[f].Norm.y, Fac_[f].Norm.z);
         do {
             Vec *v_ = from->fr;
             glVertex3f(v_->x, v_->y, v_->z);
@@ -69,19 +75,8 @@ void Graphic::drawObject(ObjectFN *ofn)
         } while (from != Fac_[f].from);
         glEnd();
     }
+    glDisableClientState(GL_NORMAL_ARRAY);
 
-    /*struct Face {
-    Edge *from;     // Första edgen
-    Vec Norm;       // Face Normal
-};
-
-struct Edge {
-    Vec *fr;
-    Vec *to;
-    Edge *next;
-    Edge *prev;
-    Edge *oppo;
-    Face *face;*/
 }
 
 void Graphic::close()
