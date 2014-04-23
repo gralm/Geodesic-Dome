@@ -69,7 +69,9 @@ void Graphic::drawObject(ObjectFN *ofn)
         //glBegin(GL_TRIANGLES);
         glNormal3f(Fac_[f].Norm.x, Fac_[f].Norm.y, Fac_[f].Norm.z);
         do {
-            Vec *v_ = from->fr;
+            Vertex *VVVVVVV = from->fr;
+            Vec *asdf = &VVVVVVV->X;
+            Vec *v_ = &from->fr->X;
             glVertex3f(v_->x, v_->y, v_->z);
             from = from->next;
         } while (from != Fac_[f].from);

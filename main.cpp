@@ -91,23 +91,20 @@ void idle()
 
 int main(int argc, char** argv)
 {
-    /*Vec pos = Vec(0., 0., 2.5);
-    Mat ori = Mat(0., 0., -1,
-                  0, 1.0, 0.,
-                  1.0, .0, .0);*/
     cout << "Detta är subdivideringsversionen" << endl;
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(250, 250);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
-    //bool hurgickdet1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //bool hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     bool hurgickdet1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //bool hurgickdet1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //bool hurgickdet2 = World::removeAllObjects();
 
-    std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
+    //std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
     //std::cout << "2. gick ju " << (hurgickdet2? "bra": "kasst") << std::endl;
 
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
@@ -116,8 +113,8 @@ int main(int argc, char** argv)
 
 //  skrivet för att få igång normalerna
     {    
-        GLfloat position0[] = {1.0, 1.0, 1.0, 0.0};
-        GLfloat diffuse0[] = {1.0, 0.0, 0.0, 1.0}; // Id term - Red
+        GLfloat position0[] = {1.0, 1.0, 1.0, 0.5};
+        GLfloat diffuse0[] = {1.0, 1.0, 0.0, 1.0}; // Id term - Red
         GLfloat specular0[] = {1.0, 1.0, 1.0, 1.0}; // Is term - White
         GLfloat ambient0[] = {0.1, 0.1, 0.1, 1.0}; // Ia term - Gray
 

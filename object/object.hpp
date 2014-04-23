@@ -8,11 +8,20 @@
 #define OBJ_TETRAHEDRON					12
 #define OBJ_DODECAHEDRON				13
 
-//#include <vector>
+// https://www8.cs.umu.se/kurser/5DV009/HT08/handouts/HO%20E%20-%20Subdivision.pdf
+#include <vector>
 #include "../defines.hpp"
 #include <cstring>
 
+
+
 struct Edge;
+
+struct Vertex {
+	Edge *from;
+	Vec X;
+	Vec Norm;
+};
 
 struct Face {
 	Edge *from;		// Första edgen
@@ -20,14 +29,14 @@ struct Face {
 };
 
 struct Edge {
-	Vec *fr;
-	Vec *to;
+	Vertex *fr;
+	Vertex *to;
 	Edge *next;
 	Edge *prev;
 	Edge *oppo;
 	Face *face;
 
-	void set(Vec* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face);
+	void set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face);
 };
 
 
@@ -36,11 +45,14 @@ struct Edge {
 class ObjectFN {
 protected:
 
+	bool consistsOfOnlyTriangles;
+
 	int numV;
 	int numE;
 	int numF;
 
-	Vec *V;
+	//Vec *V;
+	Vertex *V;
 	Edge *E;
 	Face *F;	// 
 
@@ -52,6 +64,9 @@ public:
 	ObjectFN(int _vert, int _edge, int _face);
 	ObjectFN(std::string);
 
+	bool subdivide1();
+	//bool subdivide2();
+
 	void print();
 
 	Face* getFaces(int &numOfFaces) const;
@@ -59,12 +74,12 @@ public:
 
 
 
-class ObjCubeFN: public ObjectFN{
+class ObjCubeFN: public ObjectFN {
 public:
 	ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
 };
 
-class ObjTetrahedronFN: public ObjectFN{
+class ObjTetrahedronFN: public ObjectFN {
 public:
 	ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
 };

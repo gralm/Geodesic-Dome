@@ -4,7 +4,7 @@ using namespace std;
 
 std::list<ObjectFN*> World::Objs;
 
-void Edge::set(Vec* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face)
+void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face)
 {
 	fr = _V + _fr;
 	to = _V + _to;
@@ -27,9 +27,11 @@ ObjectFN::ObjectFN(int _vert, int _edge, int _face)
 	numV = _vert;
 	numE = _edge;
 	numF = _face;
-	V = new Vec[_vert];
+	V = new Vertex[_vert];
 	E = new Edge[_edge];
 	F = new Face[_face];
+
+	consistsOfOnlyTriangles = false;
 }
 
 ObjectFN::~ObjectFN()
@@ -60,22 +62,21 @@ void ObjectFN::print()
 	cout << "antalF: " << numF << endl;
 }
 
-
 ObjCubeFN::ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori) :ObjectFN(8, 24, 6)
 {
 		cout << "Ska skapa en Kub" << endl;
-	V[0] = Vec(-.5,		.5, 	-.5);
-	V[1] = Vec(.5, 		.5,	 	-.5);
-	V[2] = Vec(-.5,		.5, 	.5);
-	V[3] = Vec(.5, 		.5, 	.5);
-	V[4] = Vec(-.5,		-.5,	-.5);
-	V[5] = Vec(.5, 		-.5,	-.5);
-	V[6] = Vec(-.5,		-.5,	.5);
-	V[7] = Vec(.5, 		-.5,	.5);
+	V[0].X = Vec(-.5,		.5, 	-.5);
+	V[1].X = Vec(.5, 		.5,	 	-.5);
+	V[2].X = Vec(-.5,		.5, 	.5);
+	V[3].X = Vec(.5, 		.5, 	.5);
+	V[4].X = Vec(-.5,		-.5,	-.5);
+	V[5].X = Vec(.5, 		-.5,	-.5);
+	V[6].X = Vec(-.5,		-.5,	.5);
+	V[7].X = Vec(.5, 		-.5,	.5);
 
 
 	for (int i=0; i<8; i++)
-		V[i] = Vec(V[i].x*Siz.x, V[i].y*Siz.y, V[i].z*Siz.z) * Ori + Pos;
+		V[i].X = Vec(V[i].X.x*Siz.x, V[i].X.y*Siz.y, V[i].X.z*Siz.z) * Ori + Pos;
 
 	E[0].set(V, E, F, 1, 0, 1, 3, 4, 0);
 	E[1].set(V, E, F, 0, 2, 2, 0, 11, 0);
@@ -117,10 +118,191 @@ ObjCubeFN::ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori) :ObjectFN(8
 	cout << "Skapade en kub" << endl;
 
 	for (int i=0; i<8; i++)
-		cout << V[i] << endl;
+		cout << V[i].X << endl;
 	cout << "antalet killar \n";
 	print();
 }
+
+
+
+	// skapa en vertex i mitten på varje yta. 
+	// Justera den nya vertexen på rätt avstånd från mittpunkten
+	// Skapa nya ytor faces 
+bool ObjectFN::subdivide1()
+{
+	Vertex *nyV = new Vertex[numV + numF];
+	Edge *nyE = new Edge[numE*3];
+	Face *nyF = new Face[numE];
+
+	//cout << "allokerar: " << (numV + numF) << " V \t";
+	//cout << (numE*3) << " E \t";
+	//cout << numE << " F" << endl;
+
+	for (int i=0; i<numV; i++) {
+		nyV[i].X = V[i].X;
+		nyV[i].Norm = V[i].Norm;
+		nyV[i].from =  nyE + (V[i].from - E);
+	}
+	
+	for (int i=0; i<numE; i++) {
+		nyE[i].fr = nyV + (E[i].fr - V);
+		nyE[i].to = nyV + (E[i].to - V);
+		nyE[i].next = nyE + (E[i].next - E);
+		nyE[i].prev = nyE + (E[i].prev - E);
+		nyE[i].oppo = nyE + (E[i].oppo - E);
+		nyE[i].face = nyF + (E[i].face - F);
+	}
+
+	int numVny = numV;
+	int numEny = numE;
+	int numFny = 0;
+
+	Vec M_ = Vec(0, 0, 0);
+	for (int v=0; v<numV; v++)
+		M_ += V[v].X;
+
+	M_ /= static_cast<TYP>(numV);
+	//cout << "Mitten: " << M_ << endl;
+
+	for (int f=0; f<numF; f++)
+	{
+		Vec VfaceCenter_(0, 0, 0);
+		////cout << "\tface: " << f << endl;
+		Edge *iterE = F[f].from;
+		int numFaceVerts = 0;
+		TYP varians = 0;
+		do {
+			varians += (iterE->fr->X - M_)*(iterE->fr->X - M_);
+			VfaceCenter_ += iterE->fr->X;
+			//cout << (iterE - E) << "\t";
+			iterE = iterE->next;
+			numFaceVerts++;
+		} while (iterE != F[f].from);
+		//cout << endl;
+
+		//cout << "numV: " << numVny << endl;
+		//cout << "numE: " << numEny << endl;
+		//cout << "numF: " << numFny << endl;
+
+		varians /= static_cast<TYP>(numFaceVerts);
+		//cout << " numFaceVerts: " << numFaceVerts << endl;
+		//cout << " vad blir fel here? " << varians << endl;
+		//cout <<  "snitt avstånd från centrum: " << sqrt(varians) << endl;
+
+		VfaceCenter_ /= numFaceVerts;
+		VfaceCenter_ -= M_;
+		VfaceCenter_.norm();
+		VfaceCenter_ *= sqrt(varians);
+		VfaceCenter_ += M_;
+		//cout << "Face center: " << VfaceCenter_ << endl;
+
+			
+		nyV[numVny].X = VfaceCenter_;
+		nyV[numVny].from = 0;
+
+
+		
+			/// Fixa de nya fäjsen här:
+		Edge *finalE = iterE = nyE + (F[f].from - E);
+		Edge *prevFinalE = finalE->prev;
+
+		do {
+				// Skapa ny face i varje iteration
+			nyF[numFny].from = iterE;
+
+				// kom ihåg vilken som är nästa 
+			Edge *nextE = iterE->next;
+			iterE->next = &nyE[numEny];
+			iterE->prev = &nyE[numEny+1];
+			iterE->face = &nyF[numFny];
+
+			//cout << "iterE[" << (iterE - nyE) << "]: " << "{ " << (iterE->fr - nyV) << ", " << (iterE->to - nyV) << ", " << (iterE->next - nyE)
+			//		 << ", " << (iterE->prev - nyE) << ", " << (iterE->oppo - nyE) << ", " << (iterE->face - nyF) << "}" << endl;
+
+
+			nyE[numEny].fr = iterE->to;
+			nyE[numEny].to = &nyV[numVny];
+			nyE[numEny].next = &nyE[numEny+1];
+			nyE[numEny].prev = iterE;
+			nyE[numEny].oppo = &nyE[numEny+3];
+			nyE[numEny].face = &nyF[numFny];
+
+			//cout << "iterE[" << (&nyE[numEny] - nyE) << "]: " << "{ " << (nyE[numEny].fr - nyV) << ", " << (nyE[numEny].to - nyV) << ", " << (nyE[numEny].next - nyE)
+			//		 << ", " << (nyE[numEny].prev - nyE) << ", " << (nyE[numEny].oppo - nyE) << ", " << (nyE[numEny].face - nyF) << "}" << endl;
+
+
+			nyE[numEny+1].fr = &nyV[numVny];
+			nyE[numEny+1].to = iterE->fr;
+			nyE[numEny+1].next = iterE;
+			nyE[numEny+1].prev = &nyE[numEny];
+			nyE[numEny+1].oppo = &nyE[numEny-2];
+			nyE[numEny+1].face = &nyF[numFny];
+
+			//cout << "iterE[" << (&nyE[numEny + 1] - nyE) << "]: " << "{ " << (nyE[numEny + 1].fr - nyV) << ", " << (nyE[numEny + 1].to - nyV) << ", " << (nyE[numEny + 1].next - nyE)
+			//		 << ", " << (nyE[numEny + 1].prev - nyE) << ", " << (nyE[numEny + 1].oppo - nyE) << ", " << (nyE[numEny + 1].face - nyF) << "}" << endl;
+
+
+			iterE = nextE;
+			numEny += 2;
+			numFny += 1;
+		} while (iterE != finalE);
+
+		iterE->prev->oppo = prevFinalE->next;
+		prevFinalE->next->oppo = iterE->prev;
+
+		//cout << "E[" << (iterE->prev - nyE) << "].oppo: " << (iterE->prev->oppo - nyE) << endl;
+		//cout << "E[" << (prevFinalE->next - nyE) << "].oppo: " << (prevFinalE->next->oppo - nyE) << endl;
+
+		//cout << "Färdig med denna facet" << endl;
+		numVny++;
+
+	}
+
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	numV = numVny;
+	numE = numEny;
+	numF = numFny;
+
+
+	for (int f=0; f<numF; f++)
+	{
+		F[f].Norm = (F[f].from->to->X - F[f].from->fr->X) & (F[f].from->next->to->X - F[f].from->next->fr->X);
+		F[f].Norm.norm();
+		//cout << "Face[" << f << "]: " << F[f].Norm << endl;
+	}
+
+	return true;
+}
+
+/*
+struct Vertex {
+	Edge *from;
+	Vec X;
+	Vec Norm;
+};
+
+struct Face {
+	Edge *from;		// Första edgen
+	Vec Norm;		// Face Normal
+};
+
+struct Edge {
+	Vertex *fr;
+	Vertex *to;
+	Edge *next;
+	Edge *prev;
+	Edge *oppo;
+	Face *face;
+*/
+
 
 
 
@@ -129,13 +311,13 @@ ObjTetrahedronFN::ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Or
 	TYP s2 = static_cast<TYP>(sqrt(2.0));
 	TYP s3 = static_cast<TYP>(sqrt(3.0));
 
-	V[0] = Vec(1/s3, 		0, 		-0.5/(s3*s2));
-	V[1] = Vec(-0.5/s3, 	0.5, 	-0.5/(s3*s2));
-	V[2] = Vec(-0.5/s3, 	-0.5, 	-0.5/(s3*s2));
-	V[3] = Vec(0, 			0, 		(s3*s2)*.25);
+	V[0].X = Vec(1/s3, 		0, 		-0.5/(s3*s2));
+	V[1].X = Vec(-0.5/s3, 	0.5, 	-0.5/(s3*s2));
+	V[2].X = Vec(-0.5/s3, 	-0.5, 	-0.5/(s3*s2));
+	V[3].X = Vec(0, 		0, 		(s3*s2)*.25);
 
 	for (int i=0; i<4; i++)
-		V[i] = Vec(V[i].x*Siz.x, V[i].y*Siz.y, V[i].z*Siz.z) * Ori + Pos;
+		V[i].X = Vec(V[i].X.x*Siz.x, V[i].X.y*Siz.y, V[i].X.z*Siz.z) * Ori + Pos;
 
 
 	E[0].set(V, E, F, 0, 1, 1, 2,11, 0);
@@ -151,10 +333,13 @@ ObjTetrahedronFN::ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Or
 	E[10].set(V,E, F, 2, 1,11, 9, 6, 3);
 	E[11].set(V,E, F, 1, 0, 9,10, 0, 3);
 
-	F[0].from = &E[0];		F[0].Norm = (V[2] * (-2.0*s2/s3)) * Ori;
-	F[1].from = &E[3];		F[1].Norm = (V[1] * (-2.0*s2/s3)) * Ori;
-	F[2].from = &E[6];		F[2].Norm = (V[0] * (-2.0*s2/s3)) * Ori;
-	F[3].from = &E[9];		F[3].Norm = (V[3] * (-2.0*s2/s3)) * Ori;
+	F[0].from = &E[0];		F[0].Norm = (V[2].X * (-2.0*s2/s3)) * Ori;
+	F[1].from = &E[3];		F[1].Norm = (V[1].X * (-2.0*s2/s3)) * Ori;
+	F[2].from = &E[6];		F[2].Norm = (V[0].X * (-2.0*s2/s3)) * Ori;
+	F[3].from = &E[9];		F[3].Norm = (V[3].X * (-2.0*s2/s3)) * Ori;
+
+
+	subdivide1();
 }
 
 
@@ -166,28 +351,28 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 	TYP sin2 = sqrt((5.0-s5) / 8.);
 
 		// A
-	V[0] = Vec(1.0, 0.0, 0.0);
-	V[1] = Vec(0.25*(s5-1.0), sin1, 0.0);
-	V[2] = Vec(-0.25*(s5+1.0), sin2, 0.0);
-	V[3] = Vec(V[2].x, -V[2].y, 0.0);
-	V[4] = Vec(V[1].x, -V[1].y, 0.0);
+	V[0].X = Vec(1.0, 0.0, 0.0);
+	V[1].X = Vec(0.25*(s5-1.0), sin1, 0.0);
+	V[2].X = Vec(-0.25*(s5+1.0), sin2, 0.0);
+	V[3].X = Vec(V[2].X.x, -V[2].X.y, 0.0);
+	V[4].X = Vec(V[1].X.x, -V[1].X.y, 0.0);
 
 		// B
 	for (int i=0; i<5; i++)
-		V[5+i] = V[i]*(0.5*(1+s5)) + Vec(0.0, 0.0, 0.25*(1.0-s5));
+		V[5+i].X = V[i].X*(0.5*(1+s5)) + Vec(0.0, 0.0, 0.25*(1.0-s5));
 		//V[5+i] = V[i]*(0.25*(1+s5)) + Vec(0.0, 0.0, 0.25*(1.0-s5));
 
 		// C
 	for (int i=0; i<5; i++)
-		V[10+i] = -V[i<2? i+8: i+3];
+		V[10+i].X = -V[i<2? i+8: i+3].X;
 
 		// A
 	for (int i=0; i<5; i++)
-		V[i].z -= 0.25*(3+s5);
+		V[i].X.z -= 0.25*(3+s5);
 
 		// D
 	for (int i=0; i<5; i++)
-		V[15+i] = -V[(i<2)? i+3: i-2];
+		V[15+i].X = -V[(i<2)? i+3: i-2].X;
 
 
 	E[0].set(V, E, F, 0, 4, 1, 4,25, 0);
@@ -269,11 +454,11 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 	E[59].set(V, E, F,19,15, 55, 58,32,11);
 
 	F[0].from = &E[0];		F[0].Norm = Vec(0, 0, -1);
-	F[1].from = &E[05];		F[1].Norm = Vec(-2.*V[3].x, -2.*V[3].y, -1.) / s5;
-	F[2].from = &E[10]; 	F[2].Norm = Vec(-2.*V[4].x, -2.*V[4].y, -1.) / s5;
-	F[3].from = &E[15];		F[3].Norm = Vec(-2.*V[0].x, -2.*V[0].y, -1.) / s5;
-	F[4].from = &E[20];		F[4].Norm = Vec(-2.*V[1].x, -2.*V[1].y, -1.) / s5;
-	F[5].from = &E[25];		F[5].Norm = Vec(-2.*V[2].x, -2.*V[2].y, -1.) / s5;
+	F[1].from = &E[05];		F[1].Norm = Vec(-2.*V[3].X.x, -2.*V[3].X.y, -1.) / s5;
+	F[2].from = &E[10]; 	F[2].Norm = Vec(-2.*V[4].X.x, -2.*V[4].X.y, -1.) / s5;
+	F[3].from = &E[15];		F[3].Norm = Vec(-2.*V[0].X.x, -2.*V[0].X.y, -1.) / s5;
+	F[4].from = &E[20];		F[4].Norm = Vec(-2.*V[1].X.x, -2.*V[1].X.y, -1.) / s5;
+	F[5].from = &E[25];		F[5].Norm = Vec(-2.*V[2].X.x, -2.*V[2].X.y, -1.) / s5;
 	F[6].from = &E[30];		F[6].Norm = -F[3].Norm;
 	F[7].from = &E[35];		F[7].Norm = -F[4].Norm;
 	F[8].from = &E[40];		F[8].Norm = -F[5].Norm;
@@ -282,12 +467,12 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 	F[11].from =&E[55];		F[11].Norm = Vec(0, 0, 1.);
 
 	for (int i=0; i<20; i++)
-		V[i] *= .5;
+		V[i].X *= .5;
+
+	subdivide1();
 }
 
 
-ObjDodecahedronTriFN::ObjDodecahedronTriFN(const ObjDodecahedronFN *doden): ObjectFN() 
-{}
 
 
 
@@ -325,7 +510,7 @@ bool World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &
 
 	Objs.push_back(nyFN);
 
-	cout << "Antal Objekt 1: " << Objs.size() << endl;
+	//cout << "Antal Objekt 1: " << Objs.size() << endl;
 
 	return true;
 }
@@ -346,8 +531,8 @@ bool World::removeAllObjects()
 }
 
 
-	ObjectFN* World::getAnObject()
-	{
-		return static_cast<ObjectFN*>(*Objs.begin());
-	}
+ObjectFN* World::getAnObject()
+{
+	return static_cast<ObjectFN*>(*Objs.begin());
+}
 

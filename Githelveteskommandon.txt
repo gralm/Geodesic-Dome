@@ -26,6 +26,8 @@ remote		repository stored on another computer/server.
 
 git diff
 git diff HEAD
+
+	Pusha remoten "origin"(som du har addat alla nya/uppdaterade filerna till och som du har committat) till branchen "master"
 git push origin master
 git status
 git ls-files
