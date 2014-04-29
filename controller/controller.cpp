@@ -6,7 +6,7 @@ Vec *Controller::pos = 0;
 Mat *Controller::ori = 0;
 int Controller::mouseX = 0, Controller::mouseY = 0;
 TYP Controller::rotationVelocity = 0.01;
-TYP Controller::distance = 2.500;
+TYP Controller::distance = 3.500;
 
 bool Controller::privatelyCreatedPosition = false;
 bool Controller::privatelyCreatedOrientation = false;

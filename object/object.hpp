@@ -65,7 +65,7 @@ public:
 	ObjectFN(std::string);
 
 	bool subdivide1();
-	//bool subdivide2();
+	bool subdivide2();
 
 	void print();
 
@@ -103,9 +103,10 @@ private:
 	static std::list<ObjectFN*> Objs;
 	
 public:
-	static bool addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori);
+	static ObjectFN* addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori);
 	static bool removeAllObjects();
 	static ObjectFN* getAnObject();
+	static std::list<ObjectFN*>* getObjectListPointer();
 };
 
 

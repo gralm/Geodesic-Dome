@@ -25,16 +25,23 @@ void Graphic::setCamera(const Vec &P, const Mat &M)
 
 void Graphic::display()
 {
-    static TYP asdf = 0.0;
-    asdf += 0.001;
+    //static TYP asdf = 0.0;
+    //asdf += 0.001;
 
-    ObjectFN *ofn = World::getAnObject();
+    
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-    drawRectangle(asdf, asdf+1.0, 0.0, 1.0, 0);
-    drawRectangle(-1.0, 0.0, asdf+0.0, asdf+1.0, 1);
-    drawObject(ofn);
+    //drawRectangle(asdf, asdf+1.0, 0.0, 1.0, 0);
+    //drawRectangle(-1.0, 0.0, asdf+0.0, asdf+1.0, 1);
+
+    std::list<ObjectFN*> *objs = World::getObjectListPointer();
+    for (std::list<ObjectFN*>::iterator itFN = objs->begin(); itFN != objs->end(); itFN++)
+    {
+    //while (ObjectFN *ofn = World::getAnObject()) {
+       //drawObject(ofn);
+        drawObject(*itFN);
+    }
 
     glFlush();
     glutSwapBuffers();

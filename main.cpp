@@ -99,10 +99,12 @@ int main(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
-    //bool hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    bool hurgickdet1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //bool hurgickdet1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //bool hurgickdet2 = World::removeAllObjects();
+    bool hurgickdet1;
+    //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //nyobj1->subdivide1();
+    //hurgickdet2 = World::removeAllObjects();
 
     //std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
     //std::cout << "2. gick ju " << (hurgickdet2? "bra": "kasst") << std::endl;
@@ -124,6 +126,7 @@ int main(int argc, char** argv)
         // Enable lighting and the light we have set up
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
+
         glEnable(GL_DEPTH_TEST);
 
         //Set lighting parameters
@@ -131,6 +134,19 @@ int main(int argc, char** argv)
         glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse0);
         glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
+
+            // andra ljsuet
+        GLfloat position1[] = {-1.0, -2.0, 0.0, 1.0};
+        GLfloat diffuse1[] = {0.0, 0.0, 1.0, 1.0}; // Id term - Red
+        GLfloat specular1[] = {1.0, 1.0, 1.0, 1.0}; // Is term - White
+        GLfloat ambient1[] = {0.1, 0.1, 0.1, 1.0}; // Ia term - Gray
+
+        glLightfv(GL_LIGHT1, GL_POSITION, position1);
+        glLightfv(GL_LIGHT1, GL_AMBIENT, ambient1);
+        glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse1);
+        glLightfv(GL_LIGHT1, GL_SPECULAR, specular1);
+        glEnable(GL_LIGHT1);
+
 
         glEnable(GL_COLOR_MATERIAL);
         glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);

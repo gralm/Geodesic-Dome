@@ -57,9 +57,41 @@ Face* ObjectFN::getFaces(int &numOfFaces) const
 
 void ObjectFN::print()
 {
-	cout << "antalV: " << numV << "\t";
+	/*cout << "antalV: " << numV << "\t";
 	cout << "antalE: " << numE << "\t";
 	cout << "antalF: " << numF << endl;
+
+	cout << "\tV[n] = {Edge *from, \tVec3 X, \tVec3 Norm}" << endl;
+	for (int v=0; v<numV; v++)
+		cout << "V[" << v << "] = {" << (V[v].from - V) << ",\t" << V[v].X << ",\t" << V[v].Norm << endl;
+
+	cout << endl << "\tE[n] {Vertex *fr,\tVertex *to,\tEdge *next,\tEdge *prev,\tEdge *oppo,\tFace *face}" << endl;
+	for (int e=0; e<numE; e++) {
+		cout << "E[" << e << "] {" << (E[e].fr - V) << ",\t" << (E[e].to - V) << ",\t" << (E[e].next - E)",\t";
+		cout << (E[e].prev - E) << ",\t" << (E[e].oppo - E) << ",\t" << (E[e].face - F) << "}" << endl;
+	}
+
+	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
+	for (int f=0; f<numF; f++k)*/
+
+/*struct Vertex {
+	Edge *from;
+	Vec X;
+	Vec Norm;
+};
+
+struct Face {
+	Edge *from;		// Första edgen
+	Vec Norm;		// Face Normal
+};
+
+struct Edge {
+	Vertex *fr;
+	Vertex *to;
+	Edge *next;
+	Edge *prev;
+	Edge *oppo;
+	Face *face;*/
 }
 
 ObjCubeFN::ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori) :ObjectFN(8, 24, 6)
@@ -121,6 +153,7 @@ ObjCubeFN::ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori) :ObjectFN(8
 		cout << V[i].X << endl;
 	cout << "antalet killar \n";
 	print();
+	subdivide1();
 }
 
 
@@ -282,6 +315,139 @@ bool ObjectFN::subdivide1()
 	return true;
 }
 
+
+
+	// http://en.wikipedia.org/wiki/Catmull%E2%80%93Clark_subdivision_surface. 
+	// Catmull Clark Subdivision av ytor
+bool ObjectFN::subdivide2()
+{
+
+		// skapa nya vertex, edges och faces som ska användas.
+	int numVny = numV;
+	int numEny = numE;
+	int numFny = numF;
+
+	Vertex *nyV = new Vertex[numV + numE/2];
+	Edge *nyE = new Edge[4*numE];
+	Face *nyF = new Face[4*numF];
+
+	for (int i=0; i<numV; i++) {
+		nyV[i].X = V[i].X;
+		nyV[i].Norm = V[i].Norm;
+		nyV[i].from =  nyE + (V[i].from - E);
+	}
+	
+	for (int i=0; i<numE; i++) {
+		nyE[i].fr = nyV + (E[i].fr - V);
+		nyE[i].to = nyV + (E[i].to - V);
+		nyE[i].next = nyE + (E[i].next - E);
+		nyE[i].prev = nyE + (E[i].prev - E);
+		nyE[i].oppo = nyE + (E[i].oppo - E);
+		nyE[i].face = nyF + (E[i].face - F);
+	}
+
+	for (int i=0; i<numF; i++)
+		nyF[i].from = nyE + (F[i].from - E);
+
+
+	/////////////////////////////////////////////////////
+	for (int f=0; f<numF; f++)
+	{
+		Edge *iterE = nyF[f].from;
+		
+
+		Vertex *nyV_[3];
+
+		for (int i=0; i<3; i++) {
+			if ((iterE->fr==iterE->oppo->to) && (iterE->to==iterE->oppo->fr))
+			{
+				nyV_[i] = &nyV[numVny];
+				nyV_[i]->X = (iterE->fr->X + iterE->to->X) * .5;
+				//nyV_[i]->
+				numVny++;
+			} else 
+				nyV_[i] = iterE->oppo->to;
+
+			iterE = iterE->next;
+		}
+
+			// befintligt face
+		nyE[numEny + 0].fr = nyV_[0];
+		nyE[numEny + 0].to = nyV_[2];
+		nyE[numEny + 0].next = &nyE[numEny + 1];
+		nyE[numEny + 0].prev = iterE;
+		nyE[numEny + 0].oppo = &nyE[numEny + 6];
+		nyE[numEny + 0].face = &nyF[f];
+
+		nyE[numEny + 1].fr = nyV_[2];
+		nyE[numEny + 1].to = iterE->fr;
+		nyE[numEny + 1].next = iterE;
+		nyE[numEny + 1].prev = &nyE[numEny + 0];
+//	nyE[numEny + 1].oppo = ?;
+		nyE[numEny + 1].face = &nyF[f];
+
+			// första nya facet
+		nyE[numEny + 2].fr = nyV_[1];
+		nyE[numEny + 2].to = nyV_[0];
+		nyE[numEny + 2].next = &nyE[numEny + 3];
+		nyE[numEny + 2].prev = iterE->next;
+		nyE[numEny + 2].oppo = &nyE[numEny + 7];
+		nyE[numEny + 2].face = &nyF[numFny + 0];
+
+		nyE[numEny + 3].fr = nyV_[0];
+		nyE[numEny + 3].to = iterE->to;
+		nyE[numEny + 3].next = iterE->next;
+		nyE[numEny + 3].prev = &nyE[numEny + 2];
+//	nyE[numEny + 3].oppo = ?;
+		nyE[numEny + 3].face = &nyF[numFny + 0];
+
+			// andra nya facet
+		nyE[numEny + 4].fr = nyV_[2];
+		nyE[numEny + 4].to = nyV_[1];
+		nyE[numEny + 4].next = &nyE[numEny + 5];
+		nyE[numEny + 4].prev = iterE->prev;
+		nyE[numEny + 4].oppo = &nyE[numEny + 8];
+		nyE[numEny + 4].face = &nyF[numFny + 1];
+
+		nyE[numEny + 5].fr = nyV_[1];
+		nyE[numEny + 5].to = iterE->next->to;
+		nyE[numEny + 5].next = iterE->prev;
+		nyE[numEny + 5].prev = &nyE[numEny + 4];
+//	nyE[numEny + 5].oppo = ?;
+		nyE[numEny + 5].face = &nyF[numFny + 1];
+
+
+			// tredje nya facet
+		nyE[numEny + 6].fr = nyV_[2];
+		nyE[numEny + 6].to = nyV_[0];
+		nyE[numEny + 6].next = &nyE[numEny + 7];
+		nyE[numEny + 6].prev = &nyE[numEny + 8];
+		nyE[numEny + 6].oppo = &nyE[numEny + 0];
+		nyE[numEny + 6].face = &nyF[numFny + 2];
+
+		nyE[numEny + 7].fr = nyV_[0];
+		nyE[numEny + 7].to = nyV_[1];
+		nyE[numEny + 7].next = &nyE[numEny + 8];
+		nyE[numEny + 7].prev = &nyE[numEny + 6];
+		nyE[numEny + 7].oppo = &nyE[numEny + 2];
+		nyE[numEny + 7].face = &nyF[numFny + 2];
+
+		nyE[numEny + 8].fr = nyV_[1];
+		nyE[numEny + 8].to = nyV_[2];
+		nyE[numEny + 8].next = &nyE[numEny + 6];
+		nyE[numEny + 8].prev = &nyE[numEny + 7];
+		nyE[numEny + 8].oppo = &nyE[numEny + 4];
+		nyE[numEny + 8].face = &nyF[numFny + 2];
+
+			
+		numEny += 9;
+		numFny += 3;
+	}
+	/////////////////////////////////////////////////////////
+
+	return true;
+}
+
 /*
 struct Vertex {
 	Edge *from;
@@ -339,7 +505,7 @@ ObjTetrahedronFN::ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Or
 	F[3].from = &E[9];		F[3].Norm = (V[3].X * (-2.0*s2/s3)) * Ori;
 
 
-	subdivide1();
+	//subdivide1();
 }
 
 
@@ -469,7 +635,13 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 	for (int i=0; i<20; i++)
 		V[i].X *= .5;
 
-	subdivide1();
+
+	for (int i=0; i<numV; i++)
+		V[i].X = Vec(V[i].X.x*Siz.x, V[i].X.y*Siz.y, V[i].X.z*Siz.z) * Ori + Pos;
+
+	/*static int hej = 0;
+	if (hej++ == 1)
+		subdivide1();*/
 }
 
 
@@ -478,7 +650,7 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 
 //std::vector<ObjectFN*> Objs;
 //public:
-bool World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)
+ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)
 {
 
 	ObjectFN *nyFN = 0;
@@ -501,18 +673,13 @@ bool World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &
 			break;
 		}
 		default:
-			return false;
+			return 0;
 	}
 
-	if (nyFN == 0)
-		return false;
+	if (nyFN != 0)
+		Objs.push_back(nyFN);
 
-
-	Objs.push_back(nyFN);
-
-	//cout << "Antal Objekt 1: " << Objs.size() << endl;
-
-	return true;
+	return nyFN;
 }
 
 bool World::removeAllObjects()
@@ -534,5 +701,10 @@ bool World::removeAllObjects()
 ObjectFN* World::getAnObject()
 {
 	return static_cast<ObjectFN*>(*Objs.begin());
+}
+
+std::list<ObjectFN*>* World::getObjectListPointer()
+{
+	return &Objs;
 }
 
