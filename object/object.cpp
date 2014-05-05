@@ -14,6 +14,22 @@ void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int 
 	face = _F + _face;
 }
 
+
+void Vertex::print(const Vertex *zero)
+{
+	//cout << "V[" << v << "] = {" << (V[v].from - V) << ",\t" << V[v].X << ",\t" << V[v].Norm;
+}
+
+void Face::print(const Face *zero)
+{
+
+}
+
+void Edge::print(const Edge *zero)
+{
+
+}
+
 ObjectFN::ObjectFN()
 {
 	V = 0;
@@ -57,42 +73,25 @@ Face* ObjectFN::getFaces(int &numOfFaces) const
 
 void ObjectFN::print()
 {
-	/*cout << "antalV: " << numV << "\t";
+	cout << "antalV: " << numV << "\t";
 	cout << "antalE: " << numE << "\t";
 	cout << "antalF: " << numF << endl;
 
 	cout << "\tV[n] = {Edge *from, \tVec3 X, \tVec3 Norm}" << endl;
 	for (int v=0; v<numV; v++)
-		cout << "V[" << v << "] = {" << (V[v].from - V) << ",\t" << V[v].X << ",\t" << V[v].Norm << endl;
+		cout << "V[" << v << "] = {" << (V[v].from - E) << ",\t" << V[v].X << ",\t" << V[v].Norm << endl;
 
 	cout << endl << "\tE[n] {Vertex *fr,\tVertex *to,\tEdge *next,\tEdge *prev,\tEdge *oppo,\tFace *face}" << endl;
 	for (int e=0; e<numE; e++) {
-		cout << "E[" << e << "] {" << (E[e].fr - V) << ",\t" << (E[e].to - V) << ",\t" << (E[e].next - E)",\t";
+		cout << "E[" << e << "] {" << (E[e].fr - V) << ",\t" << (E[e].to - V) << ",\t" << (E[e].next - E) << ",\t";
 		cout << (E[e].prev - E) << ",\t" << (E[e].oppo - E) << ",\t" << (E[e].face - F) << "}" << endl;
 	}
 
 	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
-	for (int f=0; f<numF; f++k)*/
-
-/*struct Vertex {
-	Edge *from;
-	Vec X;
-	Vec Norm;
-};
-
-struct Face {
-	Edge *from;		// Första edgen
-	Vec Norm;		// Face Normal
-};
-
-struct Edge {
-	Vertex *fr;
-	Vertex *to;
-	Edge *next;
-	Edge *prev;
-	Edge *oppo;
-	Face *face;*/
+	for (int f=0; f<numF; f++)
+		cout << "F[" << f << "] {" << F[f].from - E << ", " << F[f].Norm << "}" << endl;
 }
+
 
 ObjCubeFN::ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori) :ObjectFN(8, 24, 6)
 {
@@ -353,9 +352,11 @@ bool ObjectFN::subdivide2()
 	/////////////////////////////////////////////////////
 	for (int f=0; f<numF; f++)
 	{
+
+		cout << endl << endl << "*********** Nytt face: " << f << endl;
 		Edge *iterE = nyF[f].from;
 		
-
+		bool dividedOppo[3];
 		Vertex *nyV_[3];
 
 		for (int i=0; i<3; i++) {
@@ -363,13 +364,20 @@ bool ObjectFN::subdivide2()
 			{
 				nyV_[i] = &nyV[numVny];
 				nyV_[i]->X = (iterE->fr->X + iterE->to->X) * .5;
-				//nyV_[i]->
+				iterE->to = nyV_[i];
+				dividedOppo[i] = false;
 				numVny++;
-			} else 
+			} else {
+				dividedOppo[i] = true;
 				nyV_[i] = iterE->oppo->to;
+			}
 
+			cout << "Edge[" << i << "] is " << (dividedOppo[i]? "divided": "undivided") << endl;
 			iterE = iterE->next;
+			//cout << "if ((" << (iterE->fr )
 		}
+
+		cout << "Nu finns det " << numVny << " edges" << endl;
 
 			// befintligt face
 		nyE[numEny + 0].fr = nyV_[0];
@@ -383,7 +391,12 @@ bool ObjectFN::subdivide2()
 		nyE[numEny + 1].to = iterE->fr;
 		nyE[numEny + 1].next = iterE;
 		nyE[numEny + 1].prev = &nyE[numEny + 0];
-//	nyE[numEny + 1].oppo = ?;
+		if (dividedOppo[0]) {
+			nyE[numEny + 1].oppo = iterE->prev->oppo;
+			iterE->prev->oppo = nyE[numEny + 1].oppo->next->oppo->next->oppo->next;
+		} else {
+			nyE[numEny + 1].oppo = 0;
+		}
 		nyE[numEny + 1].face = &nyF[f];
 
 			// första nya facet
@@ -395,11 +408,19 @@ bool ObjectFN::subdivide2()
 		nyE[numEny + 2].face = &nyF[numFny + 0];
 
 		nyE[numEny + 3].fr = nyV_[0];
-		nyE[numEny + 3].to = iterE->to;
+		nyE[numEny + 3].to = iterE->next->fr;
 		nyE[numEny + 3].next = iterE->next;
 		nyE[numEny + 3].prev = &nyE[numEny + 2];
-//	nyE[numEny + 3].oppo = ?;
+		if (dividedOppo[1]) {
+			nyE[numEny + 3].oppo = iterE->oppo;
+			iterE->oppo = nyE[numEny + 3].oppo->next->oppo->next->oppo->next;
+		} else {
+			nyE[numEny + 3].oppo = 0;
+		}
 		nyE[numEny + 3].face = &nyF[numFny + 0];
+
+		nyF[numFny].from = &nyE[numEny + 2];
+
 
 			// andra nya facet
 		nyE[numEny + 4].fr = nyV_[2];
@@ -413,8 +434,16 @@ bool ObjectFN::subdivide2()
 		nyE[numEny + 5].to = iterE->next->to;
 		nyE[numEny + 5].next = iterE->prev;
 		nyE[numEny + 5].prev = &nyE[numEny + 4];
-//	nyE[numEny + 5].oppo = ?;
+		if (dividedOppo[2]) {
+			nyE[numEny + 5].oppo = iterE->next->oppo;
+			iterE->next->oppo = nyE[numEny + 5].oppo->next->oppo->next->oppo->next;
+		} else {
+			nyE[numEny + 5].oppo = 0;
+		}
 		nyE[numEny + 5].face = &nyF[numFny + 1];
+
+		nyF[numFny + 1].from = &nyE[numEny + 4];
+
 
 
 			// tredje nya facet
@@ -439,11 +468,63 @@ bool ObjectFN::subdivide2()
 		nyE[numEny + 8].oppo = &nyE[numEny + 4];
 		nyE[numEny + 8].face = &nyF[numFny + 2];
 
-			
+		nyF[numFny + 2].from = &nyE[numEny + 6];
+		
+
+
+
+
+
+		iterE->prev->prev = &nyE[numEny + 5];
+		iterE->prev->next = &nyE[numEny + 4];
+		//iterE->prev->to = &nyV[6];
+		
+		iterE->next->prev = &nyE[numEny + 3];
+		iterE->next->next = &nyE[numEny + 2];
+		//iterE->next->to = &nyV[2];
+		
+		iterE->prev = &nyE[numEny + 1];
+		iterE->next = &nyE[numEny + 0];
+		//iterE->to = &nyV[];
+
 		numEny += 9;
 		numFny += 3;
+
+
+			////////////////////////////////////////////////
+		cout << "antalV: " << numV << "\t";
+		cout << "antalE: " << numE << "\t";
+		cout << "antalF: " << numF << endl;
+
+		cout << "\tV[n] = {Edge *from, \tVec3 X, \tVec3 Norm}" << endl;
+		for (int v_=0; v_<numVny; v_++)
+			cout << "nyV[" << v_ << "] = {" << (nyV[v_].from - nyE) << ",\t" << nyV[v_].X << ",\t" << nyV[v_].Norm << endl;
+
+		cout << endl << "\tE[n] {Vertex *fr,\tVertex *to,\tEdge *next,\tEdge *prev,\tEdge *oppo,\tFace *face}" << endl;
+		for (int e_=0; e_<numEny; e_++) {
+			cout << "nyE[" << e_ << "] {" << (nyE[e_].fr - nyV) << ",\t" << (nyE[e_].to - nyV) << ",\t" << (nyE[e_].next - nyE) << ",\t";
+			cout << (nyE[e_].prev - nyE) << ",\t" << (nyE[e_].oppo?(nyE[e_].oppo - nyE) :-1) << ",\t" << (nyE[e_].face - nyF) << "}" << endl;
+		}
+
+		cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
+		for (int f_=0; f_<numFny; f_++)
+			cout << "nyF[" << f_ << "] {" << nyF[f_].from - nyE << ", " << nyF[f_].Norm << "}" << endl;
+
+			/////////////////////////////////////////////////
+
+
 	}
 	/////////////////////////////////////////////////////////
+	cout << "Blev färdig, nu bara fixa det sista" << endl;
+	delete[] E;
+	delete[] F;
+	delete[] V;
+
+	E = nyE;
+	F = nyF;
+	V = nyV;
+
+	print();
 
 	return true;
 }
@@ -481,6 +562,11 @@ ObjTetrahedronFN::ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Or
 	V[1].X = Vec(-0.5/s3, 	0.5, 	-0.5/(s3*s2));
 	V[2].X = Vec(-0.5/s3, 	-0.5, 	-0.5/(s3*s2));
 	V[3].X = Vec(0, 		0, 		(s3*s2)*.25);
+	
+	V[0].from = &E[0];
+	V[1].from = &E[1];
+	V[2].from = &E[4];
+	V[3].from = &E[2];
 
 	for (int i=0; i<4; i++)
 		V[i].X = Vec(V[i].X.x*Siz.x, V[i].X.y*Siz.y, V[i].X.z*Siz.z) * Ori + Pos;

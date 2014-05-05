@@ -21,11 +21,16 @@ struct Vertex {
 	Edge *from;
 	Vec X;
 	Vec Norm;
+
+	void print(const Vertex *zero);
 };
 
 struct Face {
 	Edge *from;		// Första edgen
 	Vec Norm;		// Face Normal
+
+	void print(const Face *zero);
+	void update();
 };
 
 struct Edge {
@@ -37,6 +42,7 @@ struct Edge {
 	Face *face;
 
 	void set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face);
+	void print(const Edge *zero);
 };
 
 
