@@ -102,12 +102,17 @@ int main(int argc, char** argv)
     bool hurgickdet1;
     //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    nyobj1->print();
+    
     cout << "*** driver from here ***" << endl << endl;
+    nyobj1->subdivide1();
+    nyobj2->subdivide1();
     nyobj1->subdivide2();
-    nyobj1->print();
+    //nyobj1->print();
+    cout << "*** driver to here ***" << endl << endl;
+    //nyobj1->print();
     //hurgickdet2 = World::removeAllObjects();
 
     //std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;

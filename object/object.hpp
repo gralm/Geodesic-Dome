@@ -72,6 +72,7 @@ public:
 
 	bool subdivide1();
 	bool subdivide2();
+	TYP normalizeRadius();
 
 	void print();
 

@@ -29,5 +29,8 @@ git diff HEAD
 
 	Pusha remoten "origin"(som du har addat alla nya/uppdaterade filerna till och som du har committat) till branchen "master"
 git push origin master
+	om jag vill bara spara över skit utan att pulla:
+git push -f origin branch
+
 git status
 git ls-files
