@@ -103,6 +103,86 @@ TYP ObjectFN::normalizeRadius()
 }
 
 
+bool ObjectFN::test() const
+{
+	int maxNumEdgesPerFace = 10;
+
+	for (int v=0; v<numV; v++)
+	{
+		if (V[v].from < E || V[v].from >= E + numE)
+			cout << "V[" << v << "].from outside legal interval" << endl;
+		else if (V[v].from->fr != &V[v])
+			cout << "V[" << v << "].from->fr != &V[" << v << "]" << endl;
+	}
+	for (int e=0; e<numE; e++)
+	{
+		if (E[e].fr < V || E[e].fr >= V+numV)
+			cout << "E[" << e << "].fr outside legal interval" << endl;
+		
+		if (E[e].to < V || E[e].to >= V+numV)
+			cout << "E[" << e << "].to outside legal interval" << endl;
+
+		if (E[e].next < E || E[e].next >= E+numE)
+			cout << "E[" << e << "].next outside legal interval" << endl;
+
+		if (E[e].prev < E || E[e].prev >= E+numE)
+			cout << "E[" << e << "].prev outside legal interval" << endl;
+
+		if (E[e].oppo < E || E[e].oppo >= E+numE)
+			cout << "E[" << e << "].oppo outside legal interval" << endl;
+
+		if (E[e].face < F || E[e].face >= F+numF)
+			cout << "E[" << e << "].face outside legal interval" << endl;
+
+		if (E[e].face != E[e].next->face)
+			cout << "E[" << e << "].face != E[" << e << "].next->face" << endl;
+
+		if (E[e].next->prev != &E[e])
+			cout << "E[" << e << "].next->prev != &E[" << e << "]" << endl;
+		
+		if (E[e].prev->next != &E[e])
+			cout << "E[" << e << "].prev->next != &E[" << e << "]" << endl;
+		
+		if (E[e].oppo->oppo != &E[e])
+			cout << "E[" << e << "].oppo->oppo not correct" << endl;
+
+		for (int e2=0; e2<numE; e2++)
+		{
+			if (e2 == e)
+				continue;
+
+			if (E[e].fr == E[e2].fr && E[e].to == E[e2].to)
+				cout << "E[" << e << "] connects same edge as E[" << e2 << "]" << endl;
+
+			if (E[e].fr == E[e2].to && E[e].to == E[e2].fr && E[e].oppo != &E[e2])
+				cout << "E["<< e << "] is connected as E[" << e2 << "] but is not each others opposite" << endl;
+
+			if (E[e].next == E[e2].next)
+				cout << "E[" << e << "].next = E[" << e2 << "].next" << endl;
+
+			if (E[e].prev == E[e2].prev)
+				cout << "E[" << e << "].prev = E[" << e2 << "].prev" << endl;
+
+			if (E[e].oppo == E[e2].oppo)
+				cout << "E[" << e << "].oppo = E[" << e2 << "].oppo" << endl;
+		}
+
+		
+		Edge *iterStart = E[e].next;
+		Edge *iter = &E[e];
+		int i;
+		for (i=0; i<maxNumEdgesPerFace && iter != iterStart; i++)
+		{
+			iter = iter->next;
+		}
+
+		if (i<1 || i>=maxNumEdgesPerFace-1)
+			cout << "E[" << e << "].next1->next2->next3...->nextN = start, N = " << i << endl;
+	}
+
+
+}
+
 void ObjectFN::print()
 {
 	cout << "antalV: " << numV << "\t";
@@ -770,7 +850,7 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 
 
 	
-	E[30].set(V, E, F, 5,10, 31, 35, 8,6);
+	E[30].set(V, E, F, 5,10, 31, 34, 8,6);
 	E[31].set(V, E, F,10,15, 32, 30,38,6);
 	E[32].set(V, E, F,15,19, 33, 31,59,6);
 	E[33].set(V, E, F,19,14, 34, 32,51,6);

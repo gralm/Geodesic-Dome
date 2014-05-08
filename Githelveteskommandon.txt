@@ -7,6 +7,9 @@ git init
 	Stages your README file, adding it to the list of files to be committed
 git add filnamn
 
+	om du inte vill ha den addad så resetar du med
+git reset filnamn
+
 	Commits your files, adding the message "first commit"
 git commit -m 'first commit'
 

@@ -73,6 +73,7 @@ public:
 	bool subdivide1();
 	bool subdivide2();
 	TYP normalizeRadius();
+	bool test() const;
 
 	void print();
 

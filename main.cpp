@@ -107,6 +107,8 @@ int main(int argc, char** argv)
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     
     cout << "*** driver from here ***" << endl << endl;
+    //nyobj1->print();
+    //nyobj1->test();
     nyobj1->subdivide1();
     nyobj2->subdivide1();
     nyobj1->subdivide2();
@@ -135,7 +137,6 @@ int main(int argc, char** argv)
         // Enable lighting and the light we have set up
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
-
         glEnable(GL_DEPTH_TEST);
 
         //Set lighting parameters
