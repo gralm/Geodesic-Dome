@@ -108,10 +108,11 @@ int main(int argc, char** argv)
     
     cout << "*** driver from here ***" << endl << endl;
     //nyobj1->print();
-    //nyobj1->test();
+    
     nyobj1->subdivide1();
     nyobj2->subdivide1();
     nyobj1->subdivide2();
+    nyobj1->test();
     //nyobj1->print();
     cout << "*** driver to here ***" << endl << endl;
     //nyobj1->print();

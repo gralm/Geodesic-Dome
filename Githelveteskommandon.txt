@@ -19,13 +19,18 @@ git remote add origin https://github.com/gralm/NapalmBomber.git
 	Clone a repository into the current directory in terminal
 git clone https://github.com/gralm/NapalmBomber.git
 
+	Ta sig ur jävla idiotskiten
+escape 
+:q
+
 	Skapa fil
 touch filnamn
 
 	Ordlista:
 remote		repository stored on another computer/server.
 
-
+	visar historiken i en branch, 
+git log --pretty=oneline --graph;
 
 git diff
 git diff HEAD
@@ -37,3 +42,8 @@ git push -f origin branch
 
 git status
 git ls-files
+
+
+
+???
+[23:20:36] Anders: git checkout master; git merge subdivision;

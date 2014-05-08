@@ -12,6 +12,7 @@ void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int 
 	prev = _E + _prev;
 	oppo = _E + _oppo;
 	face = _F + _face;
+	_V[_fr].from = this;
 }
 
 
@@ -399,8 +400,15 @@ bool ObjectFN::subdivide1()
 
 		//cout << "Färdig med denna facet" << endl;
 		numVny++;
-
 	}
+
+	for (int e=0; e<numEny; e++) {
+		nyE[e].fr->from = &nyE[e];
+	}
+
+	/*for (int v=0; v<numVny; v++) {
+		cout << "V[" << v << "].from = E[" << nyV[v].from - nyE << "]" << endl;
+	}*/
 
 
 	delete[] V;
@@ -701,6 +709,8 @@ bool ObjectFN::subdivide2()
 	numF = numFny;
 
 	//print();
+	for (int e=0; e<numE; e++)
+		E[e].fr->from = &E[e];
 
 	
 	normalizeRadius();
