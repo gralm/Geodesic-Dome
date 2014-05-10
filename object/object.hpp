@@ -47,6 +47,7 @@ struct Edge {
 
 
 
+
 	// Object med facenormals
 class ObjectFN {
 protected:
@@ -82,28 +83,20 @@ public:
 
 
 
-class ObjCubeFN: public ObjectFN {
-public:
-	ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
-};
 
-class ObjTetrahedronFN: public ObjectFN {
-public:
-	ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
-};
 
 //OBJ_DODECAHEDRON
-class ObjDodecahedronFN: public ObjectFN {
+/*class ObjDodecahedronFN: public ObjectFN {
 public:
 	ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
-};
+};*/
 
 
 	// 
-class ObjDodecahedronTriFN: public ObjectFN {
+/*class ObjDodecahedronTriFN: public ObjectFN {
 public:
 	ObjDodecahedronTriFN(const ObjDodecahedronFN *doden);
-};
+};*/
 
 
 class World {
@@ -116,7 +109,6 @@ public:
 	static ObjectFN* getAnObject();
 	static std::list<ObjectFN*>* getObjectListPointer();
 };
-
 
 
 #endif 

@@ -9,6 +9,7 @@
 #include "controller/controller.hpp"
 #include "object/object.hpp"
 
+
 class Graphic;
 
 void reshape(int w, int h)
@@ -101,19 +102,24 @@ int main(int argc, char** argv)
 
     bool hurgickdet1;
     //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_CUBE, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     
     cout << "*** driver from here ***" << endl << endl;
     //nyobj1->print();
     
-    nyobj1->subdivide1();
     nyobj2->subdivide1();
     nyobj1->subdivide2();
+    
+    nyobj1->subdivide2();
+    nyobj2->subdivide2();
+    nyobj1->subdivide2();
+    nyobj2->subdivide2();
+
     nyobj1->test();
-    //nyobj1->print();
+    nyobj2->test();
     cout << "*** driver to here ***" << endl << endl;
     //nyobj1->print();
     //hurgickdet2 = World::removeAllObjects();
@@ -186,5 +192,7 @@ int main(int argc, char** argv)
     glutSpecialUpFunc(Controller::specialUpFunc);
 
     glutMainLoop();
+
+    cout << "kommer man hit när man avslutar?" << endl;
     return 0;
 }
