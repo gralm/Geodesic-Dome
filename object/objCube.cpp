@@ -53,11 +53,6 @@ ObjCubeFN::ObjCubeFN(const Vec &Pos, const Vec &Siz, const Mat &Ori) :ObjectFN(8
 	F[3].from = &E[12];		F[3].Norm = Vec(0, -1, 0) * Ori;
 	F[4].from = &E[16];		F[4].Norm = Vec(1, 0, 0) * Ori;
 	F[5].from = &E[20];		F[5].Norm = Vec(0, 0, 1) * Ori;
-	/*cout << "Skapade en kub" << endl;
 
-	for (int i=0; i<8; i++)
-		cout << V[i].X << endl;
-	cout << "antalet killar \n";
-	print();
-	subdivide1();*/
+	consistsOfOnlyTriangles = false;
 }

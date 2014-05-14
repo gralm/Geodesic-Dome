@@ -37,7 +37,7 @@ ObjTetrahedronFN::ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Or
 	F[2].from = &E[6];		F[2].Norm = (V[0].X * (-2.0*s2/s3)) * Ori;
 	F[3].from = &E[9];		F[3].Norm = (V[3].X * (-2.0*s2/s3)) * Ori;
 
-
+	consistsOfOnlyTriangles = true;
 	//subdivide1();
 }
 

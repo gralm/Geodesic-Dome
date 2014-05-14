@@ -129,6 +129,8 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 	for (int i=0; i<numV; i++)
 		V[i].X = Vec(V[i].X.x*Siz.x, V[i].X.y*Siz.y, V[i].X.z*Siz.z) * Ori + Pos;
 
+	consistsOfOnlyTriangles = false;
+
 	/*static int hej = 0;
 	if (hej++ == 1)
 		subdivide1();*/

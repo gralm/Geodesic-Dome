@@ -2,6 +2,10 @@
 #include "objCube.hpp"
 #include "objTetrahedron.hpp"
 #include "objDodecahedron.hpp"
+#include "objTruncatedIcosahedron.hpp"
+		//objTruncatedIcosahedron
+
+#define ERR_PRINT(str_) 	cout << str_ << endl; if (numOfErrs++ >= maxNumOfErrs) return false
 
 using namespace std;
 
@@ -93,9 +97,20 @@ TYP ObjectFN::normalizeRadius()
 }
 
 
+
+
 bool ObjectFN::test() const
 {
+	int maxNumOfErrs = 30;
+	int numOfErrs = 0;
 	int maxNumEdgesPerFace = 10;
+
+	/*for (int e=0; e<numE; e++)
+		cout << "E[" << e << "].length = " << sqrt((E[e].to->X - E[e].fr->X) * (E[e].to->X - E[e].fr->X)) << endl;
+
+	for (int v=0; v<numV; v++)
+		cout << "V[" << v << "].length = " << sqrt(V[v].X*V[v].X) << endl;*/
+
 
 	for (int v=0; v<numV; v++)
 	{
@@ -106,55 +121,71 @@ bool ObjectFN::test() const
 	}
 	for (int e=0; e<numE; e++)
 	{
-		if (E[e].fr < V || E[e].fr >= V+numV)
-			cout << "E[" << e << "].fr outside legal interval" << endl;
+		if (E[e].fr < V || E[e].fr >= V+numV){
+			ERR_PRINT("E[" << e << "].fr outside legal interval");
+		}
 		
-		if (E[e].to < V || E[e].to >= V+numV)
-			cout << "E[" << e << "].to outside legal interval" << endl;
+		if (E[e].to < V || E[e].to >= V+numV){
+			ERR_PRINT("E[" << e << "].to outside legal interval");
+			//cout <<  << endl;
+		}
 
-		if (E[e].next < E || E[e].next >= E+numE)
-			cout << "E[" << e << "].next outside legal interval" << endl;
+		if (E[e].next < E || E[e].next >= E+numE){
+			ERR_PRINT("E[" << e << "].next outside legal interval");
+		}
 
-		if (E[e].prev < E || E[e].prev >= E+numE)
-			cout << "E[" << e << "].prev outside legal interval" << endl;
+		if (E[e].prev < E || E[e].prev >= E+numE){
+			ERR_PRINT("E[" << e << "].prev outside legal interval");
+		}
 
-		if (E[e].oppo < E || E[e].oppo >= E+numE)
-			cout << "E[" << e << "].oppo outside legal interval" << endl;
+		if (E[e].oppo < E || E[e].oppo >= E+numE){
+			ERR_PRINT("E[" << e << "].oppo outside legal interval");
+		}
 
-		if (E[e].face < F || E[e].face >= F+numF)
-			cout << "E[" << e << "].face outside legal interval" << endl;
+		if (E[e].face < F || E[e].face >= F+numF){
+			ERR_PRINT("E[" << e << "].face outside legal interval");
+		}
 
-		if (E[e].face != E[e].next->face)
-			cout << "E[" << e << "].face != E[" << e << "].next->face" << endl;
+		if (E[e].face != E[e].next->face) {
+			ERR_PRINT("E[" << e << "].face != E[" << e << "].next->face");
+		}
 
-		if (E[e].next->prev != &E[e])
-			cout << "E[" << e << "].next->prev != &E[" << e << "]" << endl;
+		if (E[e].next->prev != &E[e]) {
+			ERR_PRINT("E[" << e << "].next->prev != &E[" << e << "]");
+		}
 		
-		if (E[e].prev->next != &E[e])
-			cout << "E[" << e << "].prev->next != &E[" << e << "]" << endl;
+		if (E[e].prev->next != &E[e]) {
+			ERR_PRINT("E[" << e << "].prev->next != &E[" << e << "]");
+		}
 		
-		if (E[e].oppo->oppo != &E[e])
-			cout << "E[" << e << "].oppo->oppo not correct" << endl;
+		if (E[e].oppo->oppo != &E[e]) {
+			ERR_PRINT("E[" << e << "].oppo->oppo not correct");
+		}
 
 		for (int e2=0; e2<numE; e2++)
 		{
 			if (e2 == e)
 				continue;
 
-			if (E[e].fr == E[e2].fr && E[e].to == E[e2].to)
-				cout << "E[" << e << "] connects same edge as E[" << e2 << "]" << endl;
+			if (E[e].fr == E[e2].fr && E[e].to == E[e2].to) {
+				ERR_PRINT("E[" << e << "] connects same edge as E[" << e2 << "]");
+			}
 
-			if (E[e].fr == E[e2].to && E[e].to == E[e2].fr && E[e].oppo != &E[e2])
-				cout << "E["<< e << "] is connected as E[" << e2 << "] but is not each others opposite" << endl;
+			if (E[e].fr == E[e2].to && E[e].to == E[e2].fr && E[e].oppo != &E[e2]) {
+				ERR_PRINT("E["<< e << "] is connected as E[" << e2 << "] but is not each others opposite");
+			}
 
-			if (E[e].next == E[e2].next)
-				cout << "E[" << e << "].next = E[" << e2 << "].next" << endl;
+			if (E[e].next == E[e2].next) {
+				ERR_PRINT("E[" << e << "].next = E[" << e2 << "].next");
+			}
 
-			if (E[e].prev == E[e2].prev)
-				cout << "E[" << e << "].prev = E[" << e2 << "].prev" << endl;
+			if (E[e].prev == E[e2].prev) {
+				ERR_PRINT("E[" << e << "].prev = E[" << e2 << "].prev");
+			}
 
-			if (E[e].oppo == E[e2].oppo)
-				cout << "E[" << e << "].oppo = E[" << e2 << "].oppo" << endl;
+			if (E[e].oppo == E[e2].oppo) {
+				ERR_PRINT("E[" << e << "].oppo = E[" << e2 << "].oppo");
+			}
 		}
 
 		
@@ -166,11 +197,10 @@ bool ObjectFN::test() const
 			iter = iter->next;
 		}
 
-		if (i<1 || i>=maxNumEdgesPerFace-1)
-			cout << "E[" << e << "].next1->next2->next3...->nextN = start, N = " << i << endl;
+		if (i<1 || i>=maxNumEdgesPerFace-1) {
+			ERR_PRINT("E[" << e << "].next1->next2->next3...->nextN = start, N = " << i);
+		}
 	}
-
-
 }
 
 void ObjectFN::print()
@@ -192,7 +222,8 @@ void ObjectFN::print()
 	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
 	for (int f=0; f<numF; f++)
 		cout << "F[" << f << "] {" << F[f].from - E << ", " << F[f].Norm << "}" << endl;
-}
+
+	}
 
 
 
@@ -358,7 +389,7 @@ bool ObjectFN::subdivide1()
 		F[f].Norm.norm();
 		//cout << "Face[" << f << "]: " << F[f].Norm << endl;
 	}
-
+	consistsOfOnlyTriangles = true;
 	return true;
 }
 
@@ -368,6 +399,12 @@ bool ObjectFN::subdivide1()
 	// Catmull Clark Subdivision av ytor
 bool ObjectFN::subdivide2()
 {
+	if (consistsOfOnlyTriangles == false)
+	{
+		cout << "Kan inte utföra subdivide2 innan alla faces är trianglar. Kör subdivide1 först" << endl;
+		return false;
+	}
+
 	bool printar = false;
 
 		// skapa nya vertex, edges och faces som ska användas.
@@ -615,7 +652,6 @@ bool ObjectFN::subdivide2()
 		}
 			/////////////////////////////////////////////////
 
-
 	}
 	/////////////////////////////////////////////////////////
 	if (printar) cout << "Blev färdig, nu bara fixa det sista" << endl;
@@ -657,7 +693,7 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			break;
 		}
 		case OBJ_TRUNCATED_ICOSAHEDRON:{
-			cout << "OBJ_TRUNCATED_ICOSAHEDRON existerar inte ännu :(" << endl;
+			nyFN = new ObjTruncatedIcosahedronFN(Pos, Siz, Ori);
 			break;
 		}
 		case OBJ_TETRAHEDRON: {

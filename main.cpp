@@ -102,25 +102,19 @@ int main(int argc, char** argv)
 
     bool hurgickdet1;
     //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(.9, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
+    ObjectFN *nyobj2 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(-0.9, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_CUBE, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    
-    cout << "*** driver from here ***" << endl << endl;
     //nyobj1->print();
-    
-    nyobj2->subdivide1();
-    nyobj1->subdivide2();
-    
-    nyobj1->subdivide2();
-    nyobj2->subdivide2();
-    nyobj1->subdivide2();
-    nyobj2->subdivide2();
-
+    cout << "*** Test 1 ***" << endl << endl;
     nyobj1->test();
-    nyobj2->test();
-    cout << "*** driver to here ***" << endl << endl;
+    cout << "*** SubDiv 1 ***" << endl << endl;
+    nyobj1->subdivide1();
+    nyobj1->subdivide2();
+    cout << "*** Test 2 ***" << endl << endl;
+    nyobj1->test();
+    cout << "*** Done ***" << endl << endl;
     //nyobj1->print();
     //hurgickdet2 = World::removeAllObjects();
 

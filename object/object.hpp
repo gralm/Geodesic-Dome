@@ -13,6 +13,9 @@
 #include "../defines.hpp"
 #include <cstring>
 
+#define _HI(v)		(((v)+1) % 5)
+#define _LO(v)		((v)? (v-1): (4))
+
 
 
 struct Edge;
@@ -80,23 +83,6 @@ public:
 
 	Face* getFaces(int &numOfFaces) const;
 };
-
-
-
-
-
-//OBJ_DODECAHEDRON
-/*class ObjDodecahedronFN: public ObjectFN {
-public:
-	ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Ori);
-};*/
-
-
-	// 
-/*class ObjDodecahedronTriFN: public ObjectFN {
-public:
-	ObjDodecahedronTriFN(const ObjDodecahedronFN *doden);
-};*/
 
 
 class World {
