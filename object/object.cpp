@@ -714,6 +714,13 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 	return nyFN;
 }
 
+bool World::addObjectFN(ObjectFN *pObj)
+{
+	Objs.push_back(pObj);
+	return true;
+}
+
+
 bool World::removeAllObjects()
 {
 	int i=0;

@@ -33,7 +33,7 @@ ObjTruncatedIcosahedronFN::ObjTruncatedIcosahedronFN(const Vec &Pos, const Vec &
 
 	for (v=0; v<30; v++)
 		V[v].X += Vec(0, 0, .5 + s5);
-
+ 
 
 	for (v=0; v<5; v++)
 	{
@@ -52,7 +52,7 @@ ObjTruncatedIcosahedronFN::ObjTruncatedIcosahedronFN(const Vec &Pos, const Vec &
 		V[v+55].X = -V[(v+2)%5].X;
 	}
 
-
+ 
 
 	E[0].set(V, E, F,	0,	1,	1,	4,	11,	0);
 	E[1].set(V, E, F,	1,	2,	2,	0,	17,	0);

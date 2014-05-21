@@ -65,7 +65,7 @@ void Graphic::drawObject(ObjectFN *ofn)
     glEnableClientState(GL_NORMAL_ARRAY);
     int numOfFaces = 0;
     Face *Fac_ = ofn->getFaces(numOfFaces);
-
+    glColor4f(1, 1, 1, 1.0);
     //cout << "antal faces: " << numOfFaces << endl;
 
     for (int f=0; f<numOfFaces; f++)

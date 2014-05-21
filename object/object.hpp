@@ -91,6 +91,7 @@ private:
 	
 public:
 	static ObjectFN* addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori);
+	static bool addObjectFN(ObjectFN *pObj);
 	static bool removeAllObjects();
 	static ObjectFN* getAnObject();
 	static std::list<ObjectFN*>* getObjectListPointer();
