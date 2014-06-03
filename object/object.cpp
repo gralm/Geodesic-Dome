@@ -5,7 +5,7 @@
 #include "objTruncatedIcosahedron.hpp"
 		//objTruncatedIcosahedron
 
-#define ERR_PRINT(str_) 	cout << str_ << endl; if (numOfErrs++ >= maxNumOfErrs) return false
+#define ERR_PRINT(str_) 	cout << numOfErrs << ": " << str_ << endl; if (numOfErrs++ >= maxNumOfErrs) return false
 
 using namespace std;
 
@@ -97,6 +97,26 @@ TYP ObjectFN::normalizeRadius()
 }
 
 
+bool ObjectFN::updateConsistsOfOnlyTriangles()
+{
+
+	consistsOfOnlyTriangles = true;
+
+	for (int f=0; f<numF; f++)
+	{
+		int n = 0;
+		Edge *itE = F[f].from;
+		Edge *endE = itE->prev;
+
+		while (itE != endE) {itE = itE->next; n++;}
+		//cout << "n: " << n << "\tf:" << f << endl;
+		if (n != 2)
+			return consistsOfOnlyTriangles = false;
+	}
+
+	return consistsOfOnlyTriangles;
+}
+
 
 
 bool ObjectFN::test() const
@@ -104,30 +124,45 @@ bool ObjectFN::test() const
 	int maxNumOfErrs = 30;
 	int numOfErrs = 0;
 	int maxNumEdgesPerFace = 10;
-
-	/*for (int e=0; e<numE; e++)
-		cout << "E[" << e << "].length = " << sqrt((E[e].to->X - E[e].fr->X) * (E[e].to->X - E[e].fr->X)) << endl;
-
-	for (int v=0; v<numV; v++)
-		cout << "V[" << v << "].length = " << sqrt(V[v].X*V[v].X) << endl;*/
-
-
+	TYP minEdgeLenSq = (E[0].to->X-E[0].fr->X) * (E[0].to->X-E[0].fr->X);
+	TYP maxEdgeLenSq = minEdgeLenSq;
+	int minEdgeLenId = 0;
+	int maxEdgeLenId = 0;
+	Vec _Center(0, 0, 0);
+	
 	for (int v=0; v<numV; v++)
 	{
 		if (V[v].from < E || V[v].from >= E + numE)
 			cout << "V[" << v << "].from outside legal interval" << endl;
 		else if (V[v].from->fr != &V[v])
 			cout << "V[" << v << "].from->fr != &V[" << v << "]" << endl;
+		_Center += V[v].X;
 	}
+	_Center /= numV;
+
+
+
 	for (int e=0; e<numE; e++)
 	{
+		TYP edgeLen = (E[e].to->X - E[e].fr->X) * (E[e].to->X - E[e].fr->X);
+
+		if (edgeLen < minEdgeLenSq) {
+			minEdgeLenSq = edgeLen;
+			minEdgeLenId = e;
+		}
+		
+		if (edgeLen < minEdgeLenSq) {
+			minEdgeLenSq = edgeLen;
+			maxEdgeLenId = e;
+		}
+
+
 		if (E[e].fr < V || E[e].fr >= V+numV){
 			ERR_PRINT("E[" << e << "].fr outside legal interval");
 		}
 		
 		if (E[e].to < V || E[e].to >= V+numV){
 			ERR_PRINT("E[" << e << "].to outside legal interval");
-			//cout <<  << endl;
 		}
 
 		if (E[e].next < E || E[e].next >= E+numE){
@@ -199,6 +234,42 @@ bool ObjectFN::test() const
 
 		if (i<1 || i>=maxNumEdgesPerFace-1) {
 			ERR_PRINT("E[" << e << "].next1->next2->next3...->nextN = start, N = " << i);
+		}
+	}
+
+	cout << "Longsta Edge: " << sqrt(maxEdgeLenSq) << "\t med len: " << maxEdgeLenId << endl;
+	cout << "Minsta Edge: " << sqrt(minEdgeLenSq) << "\t med len: " << minEdgeLenId << endl;
+
+		// check face normal
+	for (int f=0; f<numF; f++)
+	{
+		Edge *itE = F[f].from;
+		Edge *endE = itE->prev;
+		Vec _FaceCenter = endE->fr->X;
+		int i = 1;
+		while (itE != endE) {
+			if (itE->face != F + f)
+			{
+				//ERR_PRINT("E[" << e << "].next1->next2->next3...->nextN = start, N = " << i);
+				ERR_PRINT("F[" << f << "].from har edge ansluten till F[" << (itE->face - F) << "]");
+			}
+			_FaceCenter += itE->fr->X;
+			i++; 
+			itE = itE->next;
+		}
+		
+		_FaceCenter /= i;
+		_FaceCenter -= _Center;
+		_FaceCenter.norm();
+
+		TYP hej = _FaceCenter * F[f].Norm;
+		if (hej < 0.7 || hej > 1.3)
+		{
+			cout << "Bad face in F[" << f << "]" << endl;
+			cout << "\t F[" << f << "].Norm = " << F[f].Norm << endl;
+			cout << "\t _FaceCenter = " << _FaceCenter << endl;
+			cout << "\t hej = " << hej << endl << endl;
+			if (numOfErrs++ >= maxNumOfErrs) return false;
 		}
 	}
 }
@@ -680,6 +751,88 @@ bool ObjectFN::subdivide2()
 
 	return true;
 }
+
+bool ObjectFN::makeDual()
+{
+	bool printar = false;
+
+		// skapa nya vertex, edges och faces som ska användas.
+	int numVny = numF;
+	int numEny = numE;
+	int numFny = numV;
+
+	Vertex *nyV = new Vertex[numVny];
+	Edge *nyE = new Edge[numEny];
+	Face *nyF = new Face[numFny];
+
+	for (int f=0; f<numF; f++)
+	{
+		if (printar) cout << "v[" <<f << "]: ";
+		int i=0;
+		Edge *e = F[f].from;
+		Edge *endingE = e->prev;
+		Vec _Pos = endingE->fr->X;
+		while (e != endingE)
+		{
+			_Pos += e->fr->X;
+			e = e->next;
+			i++;
+			if (i>20)
+			{
+				if (printar)	cout << "gick dåligt" << endl;
+				return false;
+			}
+		}
+
+		_Pos /= i;
+		if (printar)	cout << "i: " << i << "\tP: " << nyV[f].X << endl;
+		nyV[f].X = _Pos;
+	}
+
+	if (printar) 	cout << "Vert is done. " << endl;
+
+	for (int e=0; e<numE; e++)
+	{
+		if (printar) 	cout << "e: " << e << endl;
+		
+		nyE[e].fr 	= nyV + (E[e].face - F);
+		nyE[e].fr->from = &nyE[e];
+		nyE[e].to 	= nyV + (E[e].oppo->face - F);
+		nyE[e].next = nyE + (E[e].oppo->prev - E);
+		nyE[e].prev = nyE + (E[e].next->oppo - E);
+		nyE[e].oppo = nyE + (E[e].oppo - E);
+		nyE[e].face = nyF + (E[e].to - V);
+		nyE[e].face->from = &nyE[e];
+	}
+
+	for (int f=0; f<numFny; f++)
+	{
+		if (printar) 	cout << "f: " << f << endl;
+		nyF[f].update();
+	}
+
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+	numV = numVny;
+	numE = numEny;
+	numF = numFny;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	if (printar)
+		cout << (updateConsistsOfOnlyTriangles()? "bara trianglar": "inte bara trianglar") << endl;
+	else
+		updateConsistsOfOnlyTriangles();
+
+	return true;
+}
+
+
+
 
 
 ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)

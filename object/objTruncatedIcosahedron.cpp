@@ -83,13 +83,22 @@ ObjTruncatedIcosahedronFN::ObjTruncatedIcosahedronFN(const Vec &Pos, const Vec &
 		F[f+6].from = &E[f*6 + 35];
 	}
 
-	for (f=0; f<5; f++)
+	/*for (f=0; f<5; f++)
 	{
 		E[f*5 + 65].set(V, E, F, 	f+5,	f+15,	f*5+66,		f*5+69, 	f*6+9, 			f+12);
 		E[f*5 + 66].set(V, E, F, 	f+15,	f+25,	f*5+67,		f*5+65, 	f*6+40, 		f+12);
 		E[f*5 + 67].set(V, E, F, 	f+25,	f+20,	f*5+68,		f*5+66, 	f*6+93, 		f+12);
 		E[f*5 + 68].set(V, E, F, 	f+20,	f+10,	f*5+69,		f*5+67, 	_HI(f)*6 + 36, 	f+12);
 		E[f*5 + 69].set(V, E, F, 	f+10,	f+5,	f*5+65,		f*5+68, 	_HI(f)*6 + 7, 	f+12);
+		F[f+11].from = &E[f*6 + 65];
+	}*/
+	for (f=0; f<5; f++)
+	{
+		E[f*5 + 65].set(V, E, F, 	f+5,	f+15,	f*5+66,		f*5+69, 	f*6+9, 			f+11);
+		E[f*5 + 66].set(V, E, F, 	f+15,	f+25,	f*5+67,		f*5+65, 	f*6+40, 		f+11);
+		E[f*5 + 67].set(V, E, F, 	f+25,	f+20,	f*5+68,		f*5+66, 	f*6+93, 		f+11);
+		E[f*5 + 68].set(V, E, F, 	f+20,	f+10,	f*5+69,		f*5+67, 	_HI(f)*6 + 36, 	f+11);
+		E[f*5 + 69].set(V, E, F, 	f+10,	f+5,	f*5+65,		f*5+68, 	_HI(f)*6 + 7, 	f+11);
 		F[f+11].from = &E[f*6 + 65];
 	}
 

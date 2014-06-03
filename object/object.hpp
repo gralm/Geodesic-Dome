@@ -76,6 +76,17 @@ public:
 
 	bool subdivide1();
 	bool subdivide2();
+
+	bool updateConsistsOfOnlyTriangles();
+
+		// http://en.wikipedia.org/wiki/Dual_polyhedron
+	bool makeDual();
+	//ObjectFN *createDual();
+	ObjectFN *truncate(TYP val);	// truncated = 0.5, rectified = 1.0;
+	ObjectFN *rectify();
+	ObjectFN *truncate();
+
+
 	TYP normalizeRadius();
 	bool test() const;
 

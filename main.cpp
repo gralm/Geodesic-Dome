@@ -102,26 +102,31 @@ int main(int argc, char** argv)
 
     bool hurgickdet1;
     //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(1.5, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    ObjectFN *nyobj2 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    ObjectFN *nyobj3 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(-1.5, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(1.5, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.1, .1, .1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.21, .21, .21), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_CUBE, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //nyobj1->print();
-    cout << "*** Test 1 ***" << endl << endl;
-    nyobj1->test();
-    cout << "*** SubDiv 1 ***" << endl << endl;
+    
+
+    /*cout << "A:" << endl;
+    
+    cout << "testet gick: " << (nyobj1->test()?"bra":"kasst") << endl;
+    cout << "det gick: " << (nyobj1->makeDual()?"bra":"kasst") << endl;
+    nyobj1->print();
+    cout << "B:" << endl;*/
     nyobj1->subdivide1();
-    nyobj2->subdivide1();
-    nyobj1->subdivide2();
-    nyobj3->subdivide1();
-    nyobj3->subdivide2();
-    //nyobj1->subdivide2();
-    cout << "*** Test 2 ***" << endl << endl;
-    //nyobj1->test();
-    cout << "*** Done ***" << endl << endl;
+    cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
+    cout << "Make dual: det gick " << (nyobj1->makeDual()?"bra":"kasst") << endl;
+    cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
+    //cout << "Make dual: det gick " << (nyobj1->makeDual()?"bra":"kasst") << endl;
+    //cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
     //nyobj1->print();
-    //hurgickdet2 = World::removeAllObjects();
+
+
+    
+//    return 0;
 
     //std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
     //std::cout << "2. gick ju " << (hurgickdet2? "bra": "kasst") << std::endl;
