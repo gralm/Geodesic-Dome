@@ -7,6 +7,10 @@
 #define OBJ_TRUNCATED_ICOSAHEDRON		11
 #define OBJ_TETRAHEDRON					12
 #define OBJ_DODECAHEDRON				13
+#define OBJ_TRUNCATED_TETRAHEDRON		14
+#define OBJ_TRUNCATED_OCTAHEDRON		15
+#define OBJ_ICOSAHEDRON 				16
+#define OBJ_OCTAHEDRON 					17
 
 // https://www8.cs.umu.se/kurser/5DV009/HT08/handouts/HO%20E%20-%20Subdivision.pdf
 #include <vector>
@@ -66,7 +70,7 @@ protected:
 	Edge *E;
 	Face *F;	// 
 
-
+	void CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF);
 
 public:
 	ObjectFN();
@@ -74,18 +78,15 @@ public:
 	ObjectFN(int _vert, int _edge, int _face);
 	ObjectFN(std::string);
 
-	bool subdivide1();
-	bool subdivide2();
+	bool subdivide1();		// makes pyramids of all surfaces
+	bool subdivide2();		// subdivides triangles to four trianlges
 
 	bool updateConsistsOfOnlyTriangles();
 
 		// http://en.wikipedia.org/wiki/Dual_polyhedron
 	bool makeDual();
-	//ObjectFN *createDual();
-	ObjectFN *truncate(TYP val);	// truncated = 0.5, rectified = 1.0;
-	ObjectFN *rectify();
-	ObjectFN *truncate();
-
+	bool truncate(TYP val);		// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
+	bool rectify();				// truncate(val = 1.0)
 
 	TYP normalizeRadius();
 	bool test() const;

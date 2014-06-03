@@ -103,33 +103,17 @@ int main(int argc, char** argv)
     bool hurgickdet1;
     //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(1.5, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.1, .1, .1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.21, .21, .21), Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.21, .21, .21), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_CUBE, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     
-
-    /*cout << "A:" << endl;
-    
-    cout << "testet gick: " << (nyobj1->test()?"bra":"kasst") << endl;
-    cout << "det gick: " << (nyobj1->makeDual()?"bra":"kasst") << endl;
     nyobj1->print();
-    cout << "B:" << endl;*/
-    nyobj1->subdivide1();
-    cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
-    cout << "Make dual: det gick " << (nyobj1->makeDual()?"bra":"kasst") << endl;
-    cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
-    //cout << "Make dual: det gick " << (nyobj1->makeDual()?"bra":"kasst") << endl;
-    //cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
-    //nyobj1->print();
-
-
+    nyobj1->truncate(0.5);
     
-//    return 0;
+    cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
 
-    //std::cout << "1. gick ju " << (hurgickdet1? "bra": "kasst") << std::endl;
-    //std::cout << "2. gick ju " << (hurgickdet2? "bra": "kasst") << std::endl;
 
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
     Graphic::createTexture(64, 64);

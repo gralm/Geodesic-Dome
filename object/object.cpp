@@ -117,6 +117,31 @@ bool ObjectFN::updateConsistsOfOnlyTriangles()
 	return consistsOfOnlyTriangles;
 }
 
+void ObjectFN::CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
+{
+	for (int v=0; v<numV; v++)
+	{
+		nyV[v].from = nyE + (V[v].from - E);
+		nyV[v].X = V[v].X;
+		nyV[v].Norm = V[v].Norm;
+	}
+
+	for (int e=0; e<numE; e++)
+	{
+		nyE[e].fr = nyV + (E[e].fr - V);
+		nyE[e].to = nyV + (E[e].to - V);
+		nyE[e].next = nyE + (E[e].next - E);
+		nyE[e].prev = nyE + (E[e].prev - E);
+		nyE[e].oppo = nyE + (E[e].oppo - E);
+		nyE[e].face = nyF + (E[e].face - F);
+	}
+
+	for (int f=0; f<numF; f++)
+	{
+		nyF[f].from = nyE + (F[f].from - E);
+		nyF[f].Norm = F[f].Norm;
+	}
+}
 
 
 bool ObjectFN::test() const
@@ -250,7 +275,6 @@ bool ObjectFN::test() const
 		while (itE != endE) {
 			if (itE->face != F + f)
 			{
-				//ERR_PRINT("E[" << e << "].next1->next2->next3...->nextN = start, N = " << i);
 				ERR_PRINT("F[" << f << "].from har edge ansluten till F[" << (itE->face - F) << "]");
 			}
 			_FaceCenter += itE->fr->X;
@@ -271,6 +295,24 @@ bool ObjectFN::test() const
 			cout << "\t hej = " << hej << endl << endl;
 			if (numOfErrs++ >= maxNumOfErrs) return false;
 		}
+	}
+
+		// check that all faces has vertices on surface
+	for (int f=0; f<numF; f++)
+	{
+		Edge *itE = F[f].from;
+		Edge *endE = itE->prev;
+		int i;
+		while (itE != endE) {
+			TYP _val = ((itE->to->X - itE->fr->X) * F[f].Norm) / sqrt((itE->to->X - itE->fr->X)*(itE->to->X - itE->fr->X));
+			if (_val < -0.01 || _val > 0.01)
+			{
+				ERR_PRINT("F[" << f << "].Norm * E[" << (itE - E) << "] = " << _val);
+			}
+			i++; 
+			itE = itE->next;
+		}
+
 	}
 }
 
@@ -831,6 +873,48 @@ bool ObjectFN::makeDual()
 	return true;
 }
 
+bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
+{
+	bool printar = false;
+
+		// skapa nya vertex, edges och faces som ska användas.
+	int numVny = numV;
+	int numEny = numE;
+	int numFny = numF;
+
+	/*int oldV = numV;
+	int oldE = numE;
+	int oldF = numF;*/
+
+	Vertex *nyV = new Vertex[numE];
+	Edge *nyE = new Edge[2*(numV + numE + numF) - 4];
+	Face *nyF = new Face[numF + numV];
+
+	CopyVEF(nyV, nyE, nyF);
+
+	/*for (int v=0; v<numV; v++)
+	{
+		Edge *itE = nyV[v].from;
+		// ändra position på V[v].X
+		nyE[numE].fr = 
+		nyE[numE].to = 
+
+		nyF[numF].from = &nyV[v];
+
+	}*/
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	
+
+	return true;
+}
 
 
 
@@ -846,18 +930,42 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			break;
 		}
 		case OBJ_TRUNCATED_ICOSAHEDRON:{
-			nyFN = new ObjTruncatedIcosahedronFN(Pos, Siz, Ori);
+			nyFN = new ObjTruncatedIcosahedronFN(Pos, Siz*sqrt(.5 + .5/sqrt(5.)), Ori);
 			break;
 		}
 		case OBJ_TETRAHEDRON: {
 			nyFN = new ObjTetrahedronFN(Pos, Siz, Ori);
 			break;
 		}
-		case OBJ_DODECAHEDRON: {
+		case OBJ_ICOSAHEDRON: {
+				// fixa Siz-multiplikatorn här
 			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
+			nyFN->makeDual();
+			break;
+		}
+		case OBJ_DODECAHEDRON: {
+			nyFN = new ObjDodecahedronFN(Pos, Siz*sqrt(2. + 2./sqrt(5.)), Ori);
+			break;
+		}
+		case OBJ_TRUNCATED_TETRAHEDRON: {
+			nyFN = new ObjTetrahedronFN(Pos, Siz*2, Ori);
+			nyFN->subdivide1();
+			nyFN->makeDual();
+			break;	
+		}
+		case OBJ_TRUNCATED_OCTAHEDRON: {
+			nyFN = new ObjCubeFN(Pos, Siz * sqrt(8./3), Ori);
+			nyFN->subdivide1();
+    		nyFN->makeDual();
+    		break;
+		}
+		case OBJ_OCTAHEDRON: {
+			nyFN = new ObjCubeFN(Pos, Siz * sqrt(9./8.), Ori);
+			nyFN->makeDual();
 			break;
 		}
 		default:
+			cout << "finns inget like this objekt att plocka forward" << endl;
 			return 0;
 	}
 
