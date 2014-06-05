@@ -29,6 +29,13 @@ void Face::update()
 	Norm.norm();
 }
 
+void Edge::print(Vertex *V0, Edge *E0, Face *F0)
+{
+	cout << "E[" << (this - E0) << "] {fr=" << (fr-V0) << ",\tto=" << (to-V0);
+	cout << ",\tnext=" << (next-E0) << ",\tprev=" << (prev-E0) << ",\toppo=" << (oppo-E0);
+	cout << ",\tface=" << (face-F0) << "}" << endl;
+}
+
 ObjectFN::ObjectFN()
 {
 	V = 0;
@@ -162,6 +169,7 @@ bool ObjectFN::test() const
 		else if (V[v].from->fr != &V[v])
 			cout << "V[" << v << "].from->fr != &V[" << v << "]" << endl;
 		_Center += V[v].X;
+
 	}
 	_Center /= numV;
 
@@ -181,7 +189,7 @@ bool ObjectFN::test() const
 			maxEdgeLenId = e;
 		}
 
-
+			// kolla om någon är utanför intervall.
 		if (E[e].fr < V || E[e].fr >= V+numV){
 			ERR_PRINT("E[" << e << "].fr outside legal interval");
 		}
@@ -205,6 +213,19 @@ bool ObjectFN::test() const
 		if (E[e].face < F || E[e].face >= F+numF){
 			ERR_PRINT("E[" << e << "].face outside legal interval");
 		}
+
+
+
+
+
+		if (E[e].next->fr != E[e].to) {
+			ERR_PRINT("E[" << e << "].next->fr != E[" << e << "].to");
+		}
+
+		if (E[e].prev->to != E[e].fr) {
+			ERR_PRINT("E[" << e << "].prev->to != E[" << e << "].fr");
+		}
+
 
 		if (E[e].face != E[e].next->face) {
 			ERR_PRINT("E[" << e << "].face != E[" << e << "].next->face");
@@ -882,26 +903,123 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 	int numEny = numE;
 	int numFny = numF;
 
-	/*int oldV = numV;
-	int oldE = numE;
-	int oldF = numF;*/
-
 	Vertex *nyV = new Vertex[numE];
 	Edge *nyE = new Edge[2*(numV + numE + numF) - 4];
 	Face *nyF = new Face[numF + numV];
 
 	CopyVEF(nyV, nyE, nyF);
 
-	/*for (int v=0; v<numV; v++)
+	for (int v=0; v<numV; v++)
 	{
+		int _varning = 0;
 		Edge *itE = nyV[v].from;
-		// ändra position på V[v].X
-		nyE[numE].fr = 
-		nyE[numE].to = 
 
-		nyF[numF].from = &nyV[v];
+		/*if (itE->fr < itE->to)	{	// motstående hörn är inte trunkerat
+			itE->fr->X = V[v].X*(1-val/2) + itE->to->X*(val/2);
+		} else {
+			itE->fr->X = V[v].X*(1 - val/(2-val)) + itE->to->X*(val/(2-val));
+		}*/
 
-	}*/
+		nyE[numEny].fr = &nyV[numVny];
+		nyE[numEny].fr->from = &nyE[numEny];
+		nyE[numEny].to = &nyV[v];
+		nyE[numEny].next = itE;
+		nyE[numEny].prev = itE->prev;
+		nyE[numEny].oppo = &nyE[numEny+1];
+		nyE[numEny].face = itE->face;
+		nyE[numEny].face->from = &nyE[numEny];
+		
+
+		nyE[numEny+1].fr = &nyV[v];
+		nyE[numEny+1].to = &nyV[numVny];
+		nyE[numEny+1].next = &nyE[numEny+3];
+		nyE[numEny+1].oppo = &nyE[numEny];
+		nyE[numEny+1].face = &nyF[numFny];
+		nyE[numEny+1].face->from = &nyE[numEny+1];
+
+
+		
+		Edge *oldE = itE;
+		
+		itE = itE->prev;
+		itE->next->prev = &nyE[numEny];
+		itE->next = &nyE[numEny];
+		itE = itE->oppo;
+
+
+		do {
+			numEny += 2;
+			itE->fr = &nyV[numVny];
+			itE->fr->X = V[v].X;
+			/*if (itE->fr < itE->to)	{	// motstående hörn är inte trunkerat
+				itE->fr->X = V[v].X*(1-val/2) + itE->to->X*(val/2);
+			} else {
+				itE->fr->X = V[v].X*(1 - val/(2-val)) + itE->to->X*(val/(2-val));
+			}*/
+			//itE->fr->X = V[v].X*0.8 + itE->to->X*0.2;
+
+				// gammal surface
+			nyE[numEny].fr = &nyV[numVny+1];
+			nyE[numEny].fr->from = &nyE[numEny];
+			nyE[numEny].to = &nyV[numVny];
+			nyE[numEny].next = itE;
+			nyE[numEny].prev = itE->prev;
+			nyE[numEny].oppo = &nyE[numEny+1];
+			nyE[numEny].face = itE->face;
+			nyE[numEny].face->from = &nyE[numEny];
+
+				// ny surface
+			nyE[numEny+1].fr = &nyV[numVny];
+			nyE[numEny+1].fr->from = &nyE[numEny+1];
+			nyE[numEny+1].to = &nyV[numVny+1];
+			nyE[numEny+1].next = &nyE[numEny+3];
+			nyE[numEny+1].prev = &nyE[numEny-1]; 
+			nyE[numEny+1].prev->next = &nyE[numEny+1]; 
+			nyE[numEny+1].oppo = &nyE[numEny];
+			nyE[numEny+1].face = &nyF[numFny];
+			nyE[numEny+1].face->from = &nyE[numEny+1];
+
+			Edge *oldE = itE;
+			//cout << "itE = " << (itE - nyE) << endl;
+			
+			//cout << "itE->oppo->to = " << (itE->oppo->to - nyV) << endl;
+			//cout << "itE->fr = " << (itE->fr - nyV) << endl;
+			itE->oppo->to = itE->fr;
+
+			itE = itE->prev;
+			itE->next->prev = &nyE[numEny];
+			itE->next = &nyE[numEny];
+			itE = itE->oppo;
+			numVny += 1;
+
+			if (_varning++ > 10){
+				cout << "Fastnade i eternal loopness of fire death mist steeeel, yeeeeääähh " << endl;
+				return false;
+			}
+			//cout << "while E[" << (itE-nyE) << "] != " << (nyV[v].from - nyE) << "]" << endl;
+		} while(itE != nyV[v].from);
+
+		itE->prev->oppo->prev = itE->oppo->next->oppo;
+		itE->oppo->next->oppo->next = itE->prev->oppo;
+		//itE->print(nyV, nyE, nyF);
+		itE->oppo->next->fr = &nyV[v];
+		itE->oppo->next->oppo->to = &nyV[v];
+
+
+		numEny += 2;
+		numFny++;
+	}
+
+	for (int e=0; e<numE; e++)
+	{
+		if (&nyE[e] < nyE[e].oppo){
+			cout << "Fr: " << (nyE[e].fr - nyV) << "\tTo: " << (nyE[e].to - nyV) << endl;
+			Vec dX = nyE[e].to->X - nyE[e].fr->X;
+			cout << "dX(e=" << e << ") = " << dX << endl;
+			nyE[e].fr->X += dX * (val*.5);
+			nyE[e].to->X -= dX * (val*.5);
+		}
+	}
 
 	delete[] V;
 	delete[] E;
@@ -911,8 +1029,16 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 	E = nyE;
 	F = nyF;
 
-	
 
+	for (int f=0; f<numFny; f++)
+	{
+		nyF[f].update();
+	}
+
+	numV = numVny;
+	numE = numEny;
+	numF = numFny;
+	
 	return true;
 }
 
@@ -929,7 +1055,7 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			nyFN = new ObjCubeFN(Pos, Siz, Ori);
 			break;
 		}
-		case OBJ_TRUNCATED_ICOSAHEDRON:{
+		case OBJ_TRUNCATED_ICOSAHEDRON: {
 			nyFN = new ObjTruncatedIcosahedronFN(Pos, Siz*sqrt(.5 + .5/sqrt(5.)), Ori);
 			break;
 		}

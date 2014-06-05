@@ -49,7 +49,7 @@ struct Edge {
 	Face *face;
 
 	void set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face);
-	void print(const Edge *zero);
+	void print(Vertex *V0, Edge *E0, Face *F0);
 };
 
 

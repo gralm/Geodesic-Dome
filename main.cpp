@@ -103,18 +103,26 @@ int main(int argc, char** argv)
     bool hurgickdet1;
     //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(1.5, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.7, Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_ICOSAHEDRON, Vec(1, 0, 0), Vec(.51, .51, .51), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
     //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.21, .21, .21), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_CUBE, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     
+    nyobj1->test();
     nyobj1->print();
-    nyobj1->truncate(0.5);
-    
-    cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
+    cout << endl << "truncate: " << endl << endl;
+    nyobj1->truncate(2.0/3);
+    cout << endl << "nytt objekt:" << endl << endl;
+    nyobj1->print();
+    nyobj1->test();
+    /*nyobj1->subdivide1();
+    nyobj2->subdivide1();
+    nyobj2->makeDual();*/
+    //cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
 
-
+   // return 0;
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
     Graphic::createTexture(64, 64);
     Graphic::createTexture("pics/meny.bmp");
