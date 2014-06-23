@@ -11,6 +11,15 @@
 #define OBJ_TRUNCATED_OCTAHEDRON		15
 #define OBJ_ICOSAHEDRON 				16
 #define OBJ_OCTAHEDRON 					17
+#define OBJ_TRUNCATED_CUBE				18
+
+
+
+#define OBJ_TYPE_CONCAVE				1
+#define OBJ_TYPE_CONVEX					2
+#define OBJ_TYPE_IRREGULAR				4
+#define OBJ_TYPE_REGULAR 				8
+#define OBJ_TYPE_SPHERICAL				0x12			// sfär = 0x10 + att den är konvex 
 
 // https://www8.cs.umu.se/kurser/5DV009/HT08/handouts/HO%20E%20-%20Subdivision.pdf
 #include <vector>
@@ -54,7 +63,6 @@ struct Edge {
 
 
 
-
 	// Object med facenormals
 class ObjectFN {
 protected:
@@ -65,7 +73,6 @@ protected:
 	int numE;
 	int numF;
 
-	//Vec *V;
 	Vertex *V;
 	Edge *E;
 	Face *F;	// 
@@ -78,6 +85,8 @@ public:
 	ObjectFN(int _vert, int _edge, int _face);
 	ObjectFN(std::string);
 
+	ObjectFN *greenHousify(TYP b, TYP h);
+
 	bool subdivide1();		// makes pyramids of all surfaces
 	bool subdivide2();		// subdivides triangles to four trianlges
 
@@ -86,10 +95,17 @@ public:
 		// http://en.wikipedia.org/wiki/Dual_polyhedron
 	bool makeDual();
 	bool truncate(TYP val);		// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
+	bool truncate2(TYP val);		// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
 	bool rectify();				// truncate(val = 1.0)
 
+	Vec getCenter();
+
+		// Ange noll om du inte vill göra		
+		// 
+	bool transform(const Vec *Pos, const Vec *Siz, const Mat *Ori);	
+
 	TYP normalizeRadius();
-	bool test() const;
+	bool test(unsigned int shapeType_) const;
 
 	void print();
 

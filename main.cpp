@@ -101,28 +101,21 @@ int main(int argc, char** argv)
     glutCreateWindow(argv[0]);
 
     bool hurgickdet1;
-    //hurgickdet1 = World::addObjectFN(OBJ_CUBE, Vec(0.0, 0.0, 0.0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(1.5, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.7, Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_ICOSAHEDRON, Vec(1, 0, 0), Vec(.51, .51, .51), Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(.3,0,0, 0,.3,0, 0,0,.3));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(.21, .21, .21), Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_CUBE, Vec(-.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj2 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(.7, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    
-    nyobj1->test();
-    nyobj1->print();
-    cout << endl << "truncate: " << endl << endl;
-    nyobj1->truncate(2.0/3);
-    cout << endl << "nytt objekt:" << endl << endl;
-    nyobj1->print();
-    nyobj1->test();
-    /*nyobj1->subdivide1();
-    nyobj2->subdivide1();
-    nyobj2->makeDual();*/
-    //cout << "testet gick: " << (nyobj1->test()? "bra": "kasst") << endl;
 
-   // return 0;
+    TYP c = cos(.3);
+    TYP s = sin(.3);
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+    
+    
+    //nyobj1->test(unsigned int shapeType_);
+    cout << "tjena 1" << endl;
+    ObjectFN *nyobj2 = nyobj1->greenHousify(.1, .1);
+    cout << "tjena 2" << endl;
+    Vec tf = Vec(.8, .8, .8);
+    nyobj1->transform(0, &tf, 0);
+    World::addObjectFN(nyobj2);
+
+    //return 0;
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
     Graphic::createTexture(64, 64);
     Graphic::createTexture("pics/meny.bmp");
@@ -191,4 +184,20 @@ int main(int argc, char** argv)
 
     cout << "kommer man hit när man avslutar?" << endl;
     return 0;
+}
+
+
+void funkarInte1()
+{
+    TYP c = cos(.3);
+    TYP s = sin(.3);
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.5, Mat(c,0,s, 0,1,0, -s,0,c));
+    //nyobj1->test();
+    cout << "hit kom jag 1" << endl;
+    //nyobj1->print();
+    nyobj1->truncate(.55);
+    //nyobj1->subdivide1();
+    cout << "hit kom jag 2" << endl;
+    nyobj1->test(OBJ_TYPE_SPHERICAL);
+    cout << "hit kom jag 3" << endl;
 }

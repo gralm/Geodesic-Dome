@@ -20,13 +20,17 @@ void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int 
 	prev = _E + _prev;
 	oppo = _E + _oppo;
 	face = _F + _face;
+	_F[_face].from = this;	//
 	_V[_fr].from = this;
 }
 
 void Face::update()
 {
 	Norm = (from->to->X - from->fr->X) & (from->next->to->X - from->next->fr->X);
-	Norm.norm();
+	if (Norm * Norm > 0.00000001)
+		Norm.norm();
+	else 
+		cout << "För dålig precision för att skapa normal i facet" << endl;
 }
 
 void Edge::print(Vertex *V0, Edge *E0, Face *F0)
@@ -49,9 +53,13 @@ ObjectFN::ObjectFN(int _vert, int _edge, int _face)
 	numV = _vert;
 	numE = _edge;
 	numF = _face;
+
 	V = new Vertex[_vert];
 	E = new Edge[_edge];
 	F = new Face[_face];
+	cout << "V: " << V << endl;
+	cout << "E: " << E << endl;
+	cout << "F: " << F << endl;
 
 	consistsOfOnlyTriangles = false;
 }
@@ -74,6 +82,14 @@ Face* ObjectFN::getFaces(int &numOfFaces) const
 {
 	numOfFaces = numF;
 	return this->F;
+}
+
+Vec ObjectFN::getCenter()
+{
+	Vec Mitt = Vec(0, 0, 0);
+	for (int v=0; v<numV; v++)
+		Mitt += V[v].X;
+	return Mitt / numV;
 }
 
 TYP ObjectFN::normalizeRadius()
@@ -150,8 +166,26 @@ void ObjectFN::CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
 	}
 }
 
+bool ObjectFN::transform(const Vec *Pos, const Vec *Siz, const Mat *Ori)
+{
+	Vec preC_ = getCenter();
+	Vec postC_ = (Pos? (preC_ + *Pos): preC_);
+	
+	for (int i=0; i<numV; i++)
+	{
+		V[i].X -= preC_;
+		if (Siz)
+			V[i].X = Vec(V[i].X.x * Siz->x, V[i].X.y * Siz->y, V[i].X.z * Siz->z);
 
-bool ObjectFN::test() const
+		if (Ori)
+			V[i].X = V[i].X * (*Ori);
+
+		V[i].X += postC_;
+	}
+	return true;
+} 
+
+bool ObjectFN::test(unsigned int shapeType_) const
 {
 	int maxNumOfErrs = 30;
 	int numOfErrs = 0;
@@ -302,19 +336,22 @@ bool ObjectFN::test() const
 			i++; 
 			itE = itE->next;
 		}
-		
-		_FaceCenter /= i;
-		_FaceCenter -= _Center;
-		_FaceCenter.norm();
 
-		TYP hej = _FaceCenter * F[f].Norm;
-		if (hej < 0.7 || hej > 1.3)
+		if (shapeType_ & OBJ_TYPE_SPHERICAL) 
 		{
-			cout << "Bad face in F[" << f << "]" << endl;
-			cout << "\t F[" << f << "].Norm = " << F[f].Norm << endl;
-			cout << "\t _FaceCenter = " << _FaceCenter << endl;
-			cout << "\t hej = " << hej << endl << endl;
-			if (numOfErrs++ >= maxNumOfErrs) return false;
+			_FaceCenter /= i;
+			_FaceCenter -= _Center;
+			_FaceCenter.norm();
+
+			TYP hej = _FaceCenter * F[f].Norm;
+			if (hej < 0.7 || hej > 1.3)
+			{
+				cout << "Bad face in F[" << f << "]" << endl;
+				cout << "\t F[" << f << "].Norm = " << F[f].Norm << endl;
+				cout << "\t _FaceCenter = " << _FaceCenter << endl;
+				cout << "\t hej = " << hej << endl << endl;
+				if (numOfErrs++ >= maxNumOfErrs) return false;
+			}
 		}
 	}
 
@@ -907,18 +944,21 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 	Edge *nyE = new Edge[2*(numV + numE + numF) - 4];
 	Face *nyF = new Face[numF + numV];
 
+
+	cout << "nyV: " << nyV << endl;
+	cout << "nyE: " << nyE << endl;
+	cout << "nyF: " << nyF << endl;
+
+	cout << "numVny: " << numE << endl;
+	cout << "numEny: " << 2*(numV + numE + numF) - 4 << endl;
+	cout << "numFny: " << numF + numV << endl;
+
 	CopyVEF(nyV, nyE, nyF);
 
 	for (int v=0; v<numV; v++)
 	{
 		int _varning = 0;
 		Edge *itE = nyV[v].from;
-
-		/*if (itE->fr < itE->to)	{	// motstående hörn är inte trunkerat
-			itE->fr->X = V[v].X*(1-val/2) + itE->to->X*(val/2);
-		} else {
-			itE->fr->X = V[v].X*(1 - val/(2-val)) + itE->to->X*(val/(2-val));
-		}*/
 
 		nyE[numEny].fr = &nyV[numVny];
 		nyE[numEny].fr->from = &nyE[numEny];
@@ -951,12 +991,6 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 			numEny += 2;
 			itE->fr = &nyV[numVny];
 			itE->fr->X = V[v].X;
-			/*if (itE->fr < itE->to)	{	// motstående hörn är inte trunkerat
-				itE->fr->X = V[v].X*(1-val/2) + itE->to->X*(val/2);
-			} else {
-				itE->fr->X = V[v].X*(1 - val/(2-val)) + itE->to->X*(val/(2-val));
-			}*/
-			//itE->fr->X = V[v].X*0.8 + itE->to->X*0.2;
 
 				// gammal surface
 			nyE[numEny].fr = &nyV[numVny+1];
@@ -980,10 +1014,6 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 			nyE[numEny+1].face->from = &nyE[numEny+1];
 
 			Edge *oldE = itE;
-			//cout << "itE = " << (itE - nyE) << endl;
-			
-			//cout << "itE->oppo->to = " << (itE->oppo->to - nyV) << endl;
-			//cout << "itE->fr = " << (itE->fr - nyV) << endl;
 			itE->oppo->to = itE->fr;
 
 			itE = itE->prev;
@@ -996,15 +1026,12 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 				cout << "Fastnade i eternal loopness of fire death mist steeeel, yeeeeääähh " << endl;
 				return false;
 			}
-			//cout << "while E[" << (itE-nyE) << "] != " << (nyV[v].from - nyE) << "]" << endl;
 		} while(itE != nyV[v].from);
 
 		itE->prev->oppo->prev = itE->oppo->next->oppo;
 		itE->oppo->next->oppo->next = itE->prev->oppo;
-		//itE->print(nyV, nyE, nyF);
 		itE->oppo->next->fr = &nyV[v];
 		itE->oppo->next->oppo->to = &nyV[v];
-
 
 		numEny += 2;
 		numFny++;
@@ -1013,13 +1040,21 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 	for (int e=0; e<numE; e++)
 	{
 		if (&nyE[e] < nyE[e].oppo){
-			cout << "Fr: " << (nyE[e].fr - nyV) << "\tTo: " << (nyE[e].to - nyV) << endl;
 			Vec dX = nyE[e].to->X - nyE[e].fr->X;
-			cout << "dX(e=" << e << ") = " << dX << endl;
 			nyE[e].fr->X += dX * (val*.5);
 			nyE[e].to->X -= dX * (val*.5);
 		}
 	}
+
+	cout << "numVny: " << numVny << endl;
+	cout << "numEny: " << numEny << endl;
+	cout << "numFny: " << numFny << endl;
+
+
+
+	cout << "old V: " << V << endl;
+	cout << "old E: " << E << endl;
+	cout << "old F: " << F << endl;
 
 	delete[] V;
 	delete[] E;
@@ -1029,11 +1064,8 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 	E = nyE;
 	F = nyF;
 
-
 	for (int f=0; f<numFny; f++)
-	{
 		nyF[f].update();
-	}
 
 	numV = numVny;
 	numE = numEny;
@@ -1043,7 +1075,144 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 }
 
 
+bool ObjectFN::rectify()
+{
+	return true;
+}
 
+ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
+{
+	bool printar = true;
+	Vec Ctr = getCenter();
+
+	int numOf = numE/2;
+
+	ObjectFN *Pin = new ObjectFN(12*numOf, 36*numOf, 8*numOf);
+	numOf = 0;
+
+	cout << "Tjena 01" << endl;
+	for (int e=0; e<numE; e++)
+	{
+		if (E[e].fr > E[e].to)	
+			continue;
+
+		if (printar) 	cout << "E[" << e << "] = <" << (E[e].fr - V) << ", " << (E[e].to - V) << ">" << endl;
+		Vec A1 = E[e].fr->X;
+
+		Vec B1 = E[e].to->X;
+
+			// A-vars
+		Vec Z_A = (A1 - Ctr);
+		Z_A.norm();
+
+		Vec X_ = (B1 - A1);
+		X_.norm();
+		Vec Y_ = Z_A & X_;
+		Y_.norm();
+
+		Vec Z_ = X_ & Y_;
+		Z_.norm();
+		Vec Pxy_ = (E[e].prev->fr->X - E[e].prev->to->X);
+		Pxy_.norm();
+		Pxy_ += X_;
+		Pxy_ -= Z_ * (Pxy_*Z_);
+		Vec A11 = A1 + Pxy_ * (0.5*b / (Pxy_*Y_));
+
+
+		Vec Mxy_ = (E[e].oppo->next->to->X - E[e].oppo->next->fr->X);
+		Mxy_.norm();
+		Mxy_ += X_;
+		Mxy_ -= Z_ * (Mxy_*Z_);
+		Vec A12 = A1 - Mxy_ * (0.5*b / (Mxy_*Y_));
+		TYP alpha_ = h / (Z_A*Z_);
+
+		Vec A2 = A1 - Z_A*alpha_;
+		Vec A21 = A11 - Z_A*alpha_;
+		Vec A22 = A12 - Z_A*alpha_;
+
+
+			// B-vars
+		Vec Z_B = (B1 - Ctr);
+		Z_B.norm();
+
+		Pxy_ = (E[e].next->to->X - E[e].next->fr->X);
+		Pxy_.norm();
+		Pxy_ -= X_;
+		Pxy_ -= Z_ * (Pxy_*Z_);
+		Vec B11 = B1 + Pxy_ * (0.5*b / (Pxy_*Y_));
+
+		Mxy_ = (E[e].oppo->prev->fr->X - E[e].to->X);
+		Mxy_.norm();
+		Mxy_ -= X_;
+		Mxy_ -= Z_ * (Mxy_*Z_);
+		Vec B12 = B1 - Mxy_ * (0.5*b / (Mxy_*Y_));
+
+		alpha_ = h / (Z_B*Z_);
+
+		Vec B2 = B1 - Z_B*alpha_;
+		Vec B21 = B11-Z_B*alpha_;
+		Vec B22 = B12-Z_B*alpha_;
+		
+
+			//////
+		Pin->V[0 + 12*numOf].X = A1;		Pin->V[0 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[1 + 12*numOf].X = A12;		Pin->V[1 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[2 + 12*numOf].X = B12;		Pin->V[2 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[3 + 12*numOf].X = B1;		Pin->V[3 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[4 + 12*numOf].X = B11;		Pin->V[4 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[5 + 12*numOf].X = A11;		Pin->V[5 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[6 + 12*numOf].X = A2;		Pin->V[6 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[7 + 12*numOf].X = A22;		Pin->V[7 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[8 + 12*numOf].X = B22;		Pin->V[8 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[9 + 12*numOf].X = B2;		Pin->V[9 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[10 + 12*numOf].X = B21;		Pin->V[10 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+		Pin->V[11 + 12*numOf].X = A21;		Pin->V[11 + 12*numOf].from = &Pin->E[0 + 36*numOf];
+
+
+		Pin->E[0 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 0, 1, 1, 5, 9, 0);
+		Pin->E[1 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 1, 2, 2, 0, 13, 0);
+		Pin->E[2 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 2, 3, 3, 1, 17, 0);
+		Pin->E[3 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 3, 4, 4, 2, 21, 0);
+		Pin->E[4 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 4, 5, 5, 3, 25, 0);
+		Pin->E[5 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 5, 0, 0, 4, 29, 0);
+
+
+		for (int i=0; i<6; i++) 
+		{
+			int i4=i*4;
+			int a0 = i;
+			int a1 = 6+i;
+			int a2 = 7+(i==5? -1: i);
+			int a3 = 1+(i==5? -1: i);
+			Pin->E[6+i4 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, a0, a1, 7+i4, 9+i4, (i==0? 28: i4+4),	1+i);
+			Pin->E[7+i4 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, a1, a2, 8+i4, 6+i4, 35-i, 				1+i);
+			Pin->E[8+i4 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, a2, a3, 9+i4, 7+i4, (i==5? 6: i4+10), 	1+i);
+			Pin->E[9+i4 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, a3, a0, 6+i4, 8+i4, i, 				1+i);
+		}
+
+
+		Pin->E[30 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf,6, 11, 31, 35, 27, 7);
+		Pin->E[31 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf,11,10, 32, 30, 23, 7);
+		Pin->E[32 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf,10, 9, 33, 31, 19, 7);
+		Pin->E[33 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 9, 8, 34, 32, 15, 7);
+		Pin->E[34 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 8, 7, 35, 33, 11, 7);
+		Pin->E[35 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 7, 6, 30, 34, 7, 7);
+
+		numOf++;
+	}
+
+
+	cout << "Lyckads printa?" << endl;
+
+	for (int f=0; f<8*numOf; f++)
+		Pin->F[f].update();
+
+	cout << "Lyckades printaa, men testa då?" << endl;
+	Pin->test(0);
+	cout << "Lyckades testa" << endl;
+
+	return Pin;
+}
 
 ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)
 {
@@ -1088,6 +1257,12 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 		case OBJ_OCTAHEDRON: {
 			nyFN = new ObjCubeFN(Pos, Siz * sqrt(9./8.), Ori);
 			nyFN->makeDual();
+			break;
+		}
+		case OBJ_TRUNCATED_CUBE: {
+			nyFN = new ObjCubeFN(Pos, Siz * (1+sqrt(2)), Ori);
+			nyFN->truncate(2. - sqrt(2));
+			cout << "trunkerad" << endl;
 			break;
 		}
 		default:
