@@ -394,7 +394,7 @@ void ObjectFN::print()
 	for (int f=0; f<numF; f++)
 		cout << "F[" << f << "] {" << F[f].from - E << ", " << F[f].Norm << "}" << endl;
 
-	}
+}
 
 
 
@@ -1080,10 +1080,13 @@ bool ObjectFN::rectify()
 	return true;
 }
 
+	// bygger hörnen korrekt.
 ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 {
-	bool printar = true;
+	bool printar = false;
 	Vec Ctr = getCenter();
+
+
 
 	int numOf = numE/2;
 
@@ -1103,7 +1106,6 @@ ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 
 			// A-vars
 		Vec Z_A = (A1 - Ctr);
-		Z_A.norm();
 
 		Vec X_ = (B1 - A1);
 		X_.norm();
@@ -1112,18 +1114,40 @@ ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 
 		Vec Z_ = X_ & Y_;
 		Z_.norm();
-		Vec Pxy_ = (E[e].prev->fr->X - E[e].prev->to->X);
-		Pxy_.norm();
-		Pxy_ += X_;
-		Pxy_ -= Z_ * (Pxy_*Z_);
-		Vec A11 = A1 + Pxy_ * (0.5*b / (Pxy_*Y_));
 
 
-		Vec Mxy_ = (E[e].oppo->next->to->X - E[e].oppo->next->fr->X);
-		Mxy_.norm();
-		Mxy_ += X_;
-		Mxy_ -= Z_ * (Mxy_*Z_);
-		Vec A12 = A1 - Mxy_ * (0.5*b / (Mxy_*Y_));
+			// (A11 - A1)*Y_ 	= b/2
+			// (A11 - A1)*Y_1 	= -b/2
+			// (A11 - A1)*Z_ 	= 0
+
+			// 				[	Y_ 	]^T
+			// (A11 - A1)	[	Y_1	]	=	b/2 [1 	-1 	0]
+			//				[	Z_ 	]
+			
+			//								[	Y_1 x Z_	]
+			// (A11 - A1) = b/2 [1 	-1 	0]	[	Z_ x Y_		] / (Y_ * (Y_1 x Z_))
+			//								[	Y_ x Z_A	]
+
+			// (A11 - A1) = b/2 (Z_ x (Y_ + Y_1)) / (Y_1*X_)
+		Vec X_1 = (E[e].prev->fr->X - E[e].prev->to->X);
+		//X_1.norm();
+		Vec Y_1 = Z_A & X_1;
+		Y_1.norm();
+		Vec A11 = (Z_ & (Y_ + Y_1)) * (b / (2 * X_*Y_1));
+		A11 += A1;
+
+
+			// (A12 - A1)*Y_ 	= -b/2
+			// (A12 - A1)*Y_2 	= b/2
+			// (A12 - A1)*Z_ 	= 0
+		Vec X_2 = (E[e].oppo->next->to->X - E[e].oppo->next->fr->X);
+		//X_2.norm();
+		Vec Y_2 = Z_A & X_2;
+		Y_2.norm();
+		Vec A12 = (Z_ & (Y_ + Y_2)) * (-b / (2 * X_*Y_2));
+		A12 += A1;
+
+
 		TYP alpha_ = h / (Z_A*Z_);
 
 		Vec A2 = A1 - Z_A*alpha_;
@@ -1133,19 +1157,20 @@ ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 
 			// B-vars
 		Vec Z_B = (B1 - Ctr);
-		Z_B.norm();
 
-		Pxy_ = (E[e].next->to->X - E[e].next->fr->X);
-		Pxy_.norm();
-		Pxy_ -= X_;
-		Pxy_ -= Z_ * (Pxy_*Z_);
-		Vec B11 = B1 + Pxy_ * (0.5*b / (Pxy_*Y_));
+		X_1 = (E[e].next->to->X - E[e].next->fr->X);
+		//X_1.norm();
+		Y_1 = Z_B & X_1;
+		Y_1.norm();
+		Vec B11 = (Z_ & (Y_ - Y_1)) * (-b / (2 * X_*Y_1));
+		B11 += B1;
 
-		Mxy_ = (E[e].oppo->prev->fr->X - E[e].to->X);
-		Mxy_.norm();
-		Mxy_ -= X_;
-		Mxy_ -= Z_ * (Mxy_*Z_);
-		Vec B12 = B1 - Mxy_ * (0.5*b / (Mxy_*Y_));
+		X_2 = (E[e].oppo->prev->fr->X - E[e].oppo->prev->to->X);
+		//X_2.norm();
+		Y_2 = Z_B & X_2;
+		Y_2.norm();
+		Vec B12 = (Z_ & (Y_2 - Y_)) * (-b / (2 * X_*Y_2));
+		B12 += B1;
 
 		alpha_ = h / (Z_B*Z_);
 
@@ -1177,7 +1202,7 @@ ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 		Pin->E[5 + 36*numOf].set(Pin->V + 12*numOf, Pin->E + 36*numOf, Pin->F + 8*numOf, 5, 0, 0, 4, 29, 0);
 
 
-		for (int i=0; i<6; i++) 
+		for (int i=0; i<6; i++)
 		{
 			int i4=i*4;
 			int a0 = i;
@@ -1201,18 +1226,12 @@ ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 		numOf++;
 	}
 
-
-	cout << "Lyckads printa?" << endl;
-
 	for (int f=0; f<8*numOf; f++)
 		Pin->F[f].update();
 
-	cout << "Lyckades printaa, men testa då?" << endl;
-	Pin->test(0);
-	cout << "Lyckades testa" << endl;
-
 	return Pin;
 }
+
 
 ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)
 {

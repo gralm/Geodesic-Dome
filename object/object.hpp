@@ -86,6 +86,7 @@ public:
 	ObjectFN(std::string);
 
 	ObjectFN *greenHousify(TYP b, TYP h);
+	//ObjectFN *greenHousify2(TYP b, TYP h);
 
 	bool subdivide1();		// makes pyramids of all surfaces
 	bool subdivide2();		// subdivides triangles to four trianlges

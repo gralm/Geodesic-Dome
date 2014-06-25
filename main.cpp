@@ -12,6 +12,10 @@
 
 class Graphic;
 
+
+void funkarInte1();
+void funkarInte2();
+
 void reshape(int w, int h)
 {
     glViewport(0, 0, (GLsizei) w, (GLsizei) h);
@@ -102,17 +106,20 @@ int main(int argc, char** argv)
 
     bool hurgickdet1;
 
+    //funkarInte2();
     TYP c = cos(.3);
     TYP s = sin(.3);
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.75, Mat(c,0,s, 0,1,0, -s,0,c));
     
-    
-    //nyobj1->test(unsigned int shapeType_);
-    cout << "tjena 1" << endl;
-    ObjectFN *nyobj2 = nyobj1->greenHousify(.1, .1);
-    cout << "tjena 2" << endl;
-    Vec tf = Vec(.8, .8, .8);
-    nyobj1->transform(0, &tf, 0);
+    nyobj1->test(0);
+    nyobj1->subdivide1();
+    nyobj1->test(0);
+
+    ObjectFN *nyobj2 = nyobj1->greenHousify(.07, .07);
+    Vec tf = Vec(10.8, .8, .8);
+    nyobj1->transform(&tf, 0, 0);
+
     World::addObjectFN(nyobj2);
 
     //return 0;
@@ -121,7 +128,7 @@ int main(int argc, char** argv)
     Graphic::createTexture("pics/meny.bmp");
 
 //  skrivet för att få igång normalerna
-    {    
+    {
         GLfloat position0[] = {1.0, 1.0, 1.0, 0.5};
         GLfloat diffuse0[] = {1.0, 1.0, 0.0, 1.0}; // Id term - Red
         GLfloat specular0[] = {1.0, 1.0, 1.0, 1.0}; // Is term - White
@@ -165,6 +172,8 @@ int main(int argc, char** argv)
 
         glEnable(GL_AUTO_NORMAL);
         glEnable(GL_NORMALIZE);
+
+ 
     }
 
     glEnable(GL_TEXTURE_2D);
@@ -200,4 +209,19 @@ void funkarInte1()
     cout << "hit kom jag 2" << endl;
     nyobj1->test(OBJ_TYPE_SPHERICAL);
     cout << "hit kom jag 3" << endl;
+}
+
+void funkarInte2()
+{
+    TYP c = cos(.3);
+    TYP s = sin(.3);
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+
+    cout << "kom hit" << endl;
+    nyobj1->test(OBJ_TYPE_SPHERICAL);
+    cout << "kom hit 1" << endl;
+    nyobj1->subdivide1();
+    cout << "kom hit 3" << endl;
+    nyobj1->test(OBJ_TYPE_SPHERICAL);
+    cout << "kom hit 5" << endl;
 }
