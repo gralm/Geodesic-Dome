@@ -12,6 +12,33 @@ using namespace std;
 std::list<ObjectFN*> World::Objs;
 
 
+Vertex *frV__ = 0;
+Vertex *toV__ = 0;
+Edge *frE__ = 0;
+Edge *toE__ = 0;
+Face *frF__ = 0;
+Face *toF__ = 0;
+
+void check(Vertex *v, int l)
+{
+	if (v < frV__ || v >= toV__)
+		cout << l << ", Kass vertex: V[" << (v-frV__) << "]" << endl;
+}
+
+void check(Edge *e, int l)
+{
+	if (e < frE__ || e >= toE__)
+		cout << l << ", Kass edge: E[" << (e-frE__) << "]" << endl;
+}
+
+void check(Face *f, int l)
+{
+	if (f < frF__ || f >= toF__)
+		cout << l << ", Kass face: F[" << (f-frF__) << "]" << endl;
+}
+
+
+
 void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face)
 {
 	fr = _V + _fr;
@@ -187,6 +214,7 @@ bool ObjectFN::transform(const Vec *Pos, const Vec *Siz, const Mat *Ori)
 
 bool ObjectFN::test(unsigned int shapeType_) const
 {
+
 	int maxNumOfErrs = 30;
 	int numOfErrs = 0;
 	int maxNumEdgesPerFace = 10;
@@ -195,6 +223,10 @@ bool ObjectFN::test(unsigned int shapeType_) const
 	int minEdgeLenId = 0;
 	int maxEdgeLenId = 0;
 	Vec _Center(0, 0, 0);
+
+	int numFaceWithVerts[20];
+	for (int i=0; i<20; i++)
+		numFaceWithVerts[i] = 0;
 	
 	for (int v=0; v<numV; v++)
 	{
@@ -337,6 +369,8 @@ bool ObjectFN::test(unsigned int shapeType_) const
 			itE = itE->next;
 		}
 
+		numFaceWithVerts[i]++;
+
 		if (shapeType_ & OBJ_TYPE_SPHERICAL) 
 		{
 			_FaceCenter /= i;
@@ -370,7 +404,12 @@ bool ObjectFN::test(unsigned int shapeType_) const
 			i++; 
 			itE = itE->next;
 		}
+	}
 
+	for (int i=0; i<20; i++)
+	{
+		if (numFaceWithVerts[i])
+			cout << "Antal Faces med " << i << " vertices = " << numFaceWithVerts[i] << endl;
 	}
 }
 
@@ -563,6 +602,10 @@ bool ObjectFN::subdivide1()
 	consistsOfOnlyTriangles = true;
 	return true;
 }
+
+
+
+
 
 
 
@@ -852,6 +895,49 @@ bool ObjectFN::subdivide2()
 	return true;
 }
 
+
+bool ObjectFN::subdivide2(int n)	// divides every edge n times. subdivide2() = subdivide(2)
+{
+	bool printar = false;
+
+	if (n < 2) {
+		cout << "subdivide2-error, 2 <= n" << endl;
+	} else if (n == 2) {
+		return subdivide2();
+	}
+
+	int n2 = n*n;
+
+		// skapa nya vertex, edges och faces som ska användas.
+	int numVny = numF * n2;
+	int numEny = numE * n2;
+	int numFny = 2 + numF*n2/2;
+
+	
+
+	Vertex *nyV = new Vertex[numF*n2/2 + 2];
+	Edge *nyE = new Edge[numEny];
+	Face *nyF = new Face[numFny];
+
+
+
+
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+	numV = numVny;
+	numE = numEny;
+	numF = numFny;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	return false;
+}
+
+
 bool ObjectFN::makeDual()
 {
 	bool printar = false;
@@ -931,6 +1017,8 @@ bool ObjectFN::makeDual()
 	return true;
 }
 
+
+
 bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 {
 	bool printar = false;
@@ -945,13 +1033,13 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 	Face *nyF = new Face[numF + numV];
 
 
-	cout << "nyV: " << nyV << endl;
-	cout << "nyE: " << nyE << endl;
-	cout << "nyF: " << nyF << endl;
+	if (printar)	cout << "nyV: " << nyV << endl;
+	if (printar)	cout << "nyE: " << nyE << endl;
+	if (printar)	cout << "nyF: " << nyF << endl;
 
-	cout << "numVny: " << numE << endl;
-	cout << "numEny: " << 2*(numV + numE + numF) - 4 << endl;
-	cout << "numFny: " << numF + numV << endl;
+	if (printar)	cout << "numVny: " << numE << endl;
+	if (printar)	cout << "numEny: " << 2*(numV + numE + numF) - 4 << endl;
+	if (printar)	cout << "numFny: " << numF + numV << endl;
 
 	CopyVEF(nyV, nyE, nyF);
 
@@ -994,7 +1082,9 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 
 				// gammal surface
 			nyE[numEny].fr = &nyV[numVny+1];
-			nyE[numEny].fr->from = &nyE[numEny];
+			if (nyE[numEny].fr < nyV + numE)
+				nyE[numEny].fr->from = &nyE[numEny];
+			//nyE[numEny].fr->from = &nyE[numEny];
 			nyE[numEny].to = &nyV[numVny];
 			nyE[numEny].next = itE;
 			nyE[numEny].prev = itE->prev;
@@ -1046,15 +1136,15 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 		}
 	}
 
-	cout << "numVny: " << numVny << endl;
-	cout << "numEny: " << numEny << endl;
-	cout << "numFny: " << numFny << endl;
+	if (printar)	cout << "numVny: " << numVny << endl;
+	if (printar)	cout << "numEny: " << numEny << endl;
+	if (printar)	cout << "numFny: " << numFny << endl;
 
 
 
-	cout << "old V: " << V << endl;
-	cout << "old E: " << E << endl;
-	cout << "old F: " << F << endl;
+	if (printar)	cout << "old V: " << V << endl;
+	if (printar)	cout << "old E: " << E << endl;
+	if (printar)	cout << "old F: " << F << endl;
 
 	delete[] V;
 	delete[] E;

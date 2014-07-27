@@ -86,16 +86,18 @@ public:
 	ObjectFN(std::string);
 
 	ObjectFN *greenHousify(TYP b, TYP h);
-	//ObjectFN *greenHousify2(TYP b, TYP h);
 
 	bool subdivide1();		// makes pyramids of all surfaces
+	
 	bool subdivide2();		// subdivides triangles to four trianlges
+	bool subdivide2(int n);	// divides every edge n times. subdivide2() = subdivide(2)
 
 	bool updateConsistsOfOnlyTriangles();
 
 		// http://en.wikipedia.org/wiki/Dual_polyhedron
 	bool makeDual();
 	bool truncate(TYP val);		// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
+
 	bool truncate2(TYP val);		// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
 	bool rectify();				// truncate(val = 1.0)
 

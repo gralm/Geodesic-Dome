@@ -104,23 +104,26 @@ int main(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
+/*
     bool hurgickdet1;
 
     //funkarInte2();
     TYP c = cos(.3);
     TYP s = sin(.3);
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.75, Mat(c,0,s, 0,1,0, -s,0,c));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.75, Mat(c,0,s, 0,1,0, -s,0,c));
     
     nyobj1->test(0);
-    nyobj1->subdivide1();
-    nyobj1->test(0);
+    //nyobj1->subdivide1();
+    //nyobj1->test(0);
 
-    ObjectFN *nyobj2 = nyobj1->greenHousify(.07, .07);
+    ObjectFN *nyobj2 = nyobj1->greenHousify(.17, .17);
     Vec tf = Vec(10.8, .8, .8);
     nyobj1->transform(&tf, 0, 0);
 
-    World::addObjectFN(nyobj2);
+    World::addObjectFN(nyobj2);*/
+
+    funkarInte1();
 
     //return 0;
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
@@ -203,8 +206,9 @@ void funkarInte1()
     ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.5, Mat(c,0,s, 0,1,0, -s,0,c));
     //nyobj1->test();
     cout << "hit kom jag 1" << endl;
-    //nyobj1->print();
+    nyobj1->print();
     nyobj1->truncate(.55);
+
     //nyobj1->subdivide1();
     cout << "hit kom jag 2" << endl;
     nyobj1->test(OBJ_TYPE_SPHERICAL);
@@ -213,12 +217,22 @@ void funkarInte1()
 
 void funkarInte2()
 {
-    TYP c = cos(.3);
-    TYP s = sin(.3);
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
-
+    TYP c = 1;// cos(.3);
+    TYP s = 0.;// sin(.3);
+    Mat Ori = Mat(c,0,s, 0,1,0, -s,0,c);
+    Vec Siz = Vec(1, 1, 1) * (1+sqrt(2));
+    Vec Pos = Vec(0, 0, 0);
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+        
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
+    nyobj1->truncate(2. - sqrt(2));
+    
+    //nyobj1->test(0);
+    //nyobj1->truncate(2. - sqrt(2));
+    //World::addObjectFN(nyobj1);
+        
     cout << "kom hit" << endl;
-    nyobj1->test(OBJ_TYPE_SPHERICAL);
+    //nyobj1->test(OBJ_TYPE_SPHERICAL);
     cout << "kom hit 1" << endl;
     nyobj1->subdivide1();
     cout << "kom hit 3" << endl;
