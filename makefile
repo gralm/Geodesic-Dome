@@ -12,6 +12,7 @@ bygg:
 	make -s $(OBJPATH)bitmap.o
 	make -s $(OBJPATH)graphic.o
 	make -s $(OBJPATH)object.o
+	make -s $(OBJPATH)objSimple.o
 	make -s $(OBJPATH)objCube.o
 	make -s $(OBJPATH)objDodecahedron.o
 	make -s $(OBJPATH)objTetrahedron.o
@@ -32,6 +33,9 @@ $(OBJPATH)graphic.o: graphic/graphic.cpp
 
 $(OBJPATH)object.o: object/object.cpp
 	$(CC) $(OBJFLAGS) $(OBJPATH)object.o object/object.cpp -I $(INC_DIR)
+
+$(OBJPATH)objSimple.o: object/objSimple.cpp
+	$(CC) $(OBJFLAGS) $(OBJPATH)objSimple.o object/objSimple.cpp -I $(INC_DIR)
 
 $(OBJPATH)objCube.o: object/objCube.cpp
 	$(CC) $(OBJFLAGS) $(OBJPATH)objCube.o object/objCube.cpp -I $(INC_DIR)

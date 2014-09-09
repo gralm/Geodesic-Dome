@@ -1,4 +1,5 @@
 #include "object.hpp"
+#include "objSimple.hpp"
 #include "objCube.hpp"
 #include "objTetrahedron.hpp"
 #include "objDodecahedron.hpp"
@@ -67,6 +68,118 @@ void Edge::print(Vertex *V0, Edge *E0, Face *F0)
 	cout << ",\tface=" << (face-F0) << "}" << endl;
 }
 
+
+int ObjectFN::truncatedEdgeNum(int _N, int _r, int _n, int _p)
+{
+	int _ERR = -10000;
+	int returnval = _ERR;
+
+	if (_p<0 || _p>=3)
+		returnval = _ERR;
+	else if (_n<0 || _n>2*_r)
+		returnval = _ERR;
+	else if (_r >= _N)
+		returnval = _ERR;
+	else if (_r == _N-1) {
+		if (_n&1) {
+			returnval = 3*_r*_r - 2*_r + (5*_n - 3)/2 + _p;
+		} else {
+			if ((_p == 1) || (_n==0 && _p==0) || (_n==2*_r && _p==2))
+				returnval = _ERR;
+			else
+				returnval = 3*_r*_r - 2*_r + (5*_n - 2 + _p)/2;
+		}
+		
+	} else if (_r == 0)
+		returnval = (_n || _p != 1)? (0): _ERR;
+	else if (_r < 0)
+		returnval = _ERR;
+	else 
+		returnval = 3*_r*_r - 2*_r + 3*_n - 1 + _p; 
+
+		// felhantering
+	//if (returnval == _ERR)
+	//	cout << "Här räknades det fel Edge när _r = " << _r << ", _n = " << _n << ", _p = " << _p << endl;
+
+	return returnval;
+}
+
+
+Edge *ObjectFN::truncatedEdgeNum(Edge *_Start, int _N, int _r, int _n, int _p)
+{
+	int _ERR = -1;
+	int returnval = _ERR;
+
+	if (_p<0 || _p>2 || _r<0 || _r>_N-1 || _n<0 || _n>2*_N)
+		returnval = _ERR;
+	else if ((_n == 0 && _p == 0) || (_n == 2*_r && _p == 2) || (_r == _N-1 && !(_n&1) && _p==1))
+		returnval = _ERR;
+	else if (_r < _N-1)
+		returnval = 3*_r*_r - 2*_r + 3*_n - 1 + _p;
+	else if (_n&1)
+		returnval = 3*_r*_r - 2*_r + (5*_n-3)/2 + _p;
+	else if (_p == 1)
+		returnval = _ERR;
+	else
+		returnval = 3*_r*_r - 2*_r + (5*_n-2)/2 + _p/2;
+
+	//if (returnval != _ERR)
+	//cout << "N=" << _N << ", _r=" << _r << ", _n=" << _n << ", _p=" << _p << ", val = " << returnval << endl;
+
+	return (returnval == _ERR)? 0: _Start+returnval;
+
+}
+
+Vertex *ObjectFN::truncatedVertexNum(Vertex *_Start, int _N, int _r, int _n, int _p)
+{	
+	int _ERR = -1;
+	int returnval = _ERR;
+
+	if (_n<0 || _n>_r*2)
+		returnval = _ERR;
+	else if (_r<1 || _r>=_N)
+		returnval = _ERR;
+	else if ((_r == _N-1) && ((_n&1 && _p==1) || (!(_n&1) && (_p != 2))))
+		returnval = _ERR;
+	else if (_n&1) {
+		switch(_p) {
+			case 0:
+				returnval = (_r<1 || (_n<3))? _ERR: (_r-2)*(_r-1)/2 + (_n-3)/2;
+				break;
+			case 1:
+				returnval = (_r<=0 && _r>=_N-1)? _ERR: (_r-1)*_r/2 + (_n-1)/2;
+				break;
+			case 2:
+				returnval = (_n >= 2*_r-1)? _ERR: (_r-2)*(_r-1)/2 + (_n-1)/2;
+				break;
+			default:
+				returnval = _ERR;
+		}
+	} else {
+		switch(_p) {
+			case 0:
+				returnval = (_n==0)? _ERR: (_r-1)*_r/2 + _n/2 - 1;
+				break;
+			case 1:
+				returnval = (_n == 2*_r)? _ERR: (_r-1)*_r/2 + _n/2;
+				break;
+			case 2:
+				returnval = (_n == 0 || _n == 2*_r)? _ERR: (_r-2)*(_r-1)/2 + _n/2 - 1;
+				break;
+			default:
+				returnval = _ERR;
+		}
+
+	}
+
+	return (returnval == _ERR)? 0: _Start+returnval;
+}
+/*
+Face *ObjectFN::truncatedFaceNum(Face *_Start, int _N, int _r, int _n)
+{
+	return 
+}*/
+
 ObjectFN::ObjectFN()
 {
 	V = 0;
@@ -84,9 +197,6 @@ ObjectFN::ObjectFN(int _vert, int _edge, int _face)
 	V = new Vertex[_vert];
 	E = new Edge[_edge];
 	F = new Face[_face];
-	cout << "V: " << V << endl;
-	cout << "E: " << E << endl;
-	cout << "F: " << F << endl;
 
 	consistsOfOnlyTriangles = false;
 }
@@ -432,6 +542,29 @@ void ObjectFN::print()
 	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
 	for (int f=0; f<numF; f++)
 		cout << "F[" << f << "] {" << F[f].from - E << ", " << F[f].Norm << "}" << endl;
+
+}
+
+
+void ObjectFN::print(const Vertex *V_, const Edge *E_, const Face *F_, int numV_, int numE_, int numF_)
+{
+	cout << "antalV: " << numV_ << "\t";
+	cout << "antalE: " << numE_ << "\t";
+	cout << "antalF: " << numF_ << endl;
+
+	cout << "\tV[n] = {Edge *from, \tVec3 X, \tVec3 Norm}" << endl;
+	for (int v=0; v<numV_; v++)
+		cout << "V[" << v << "] = {" << (V_[v].from - E_) << ",\t" << V_[v].X << ",\t" << V_[v].Norm << endl;
+
+	cout << endl << "\tE[n] {Vertex *fr,\tVertex *to,\tEdge *next,\tEdge *prev,\tEdge *oppo,\tFace *face}" << endl;
+	for (int e=0; e<numE_; e++) {
+		cout << "E[" << e << "] {" << (E_[e].fr - V_) << ",\t" << (E_[e].to - V_) << ",\t" << (E_[e].next - E_) << ",\t";
+		cout << (E_[e].prev - E_) << ",\t" << (E_[e].oppo - E_) << ",\t" << (E_[e].face - F_) << "}" << endl;
+	}
+
+	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
+	for (int f=0; f<numF_; f++)
+		cout << "F[" << f << "] {" << F_[f].from - E_ << ", " << F_[f].Norm << "}" << endl;
 
 }
 
@@ -896,36 +1029,342 @@ bool ObjectFN::subdivide2()
 }
 
 
-bool ObjectFN::subdivide2(int n)	// divides every edge n times. subdivide2() = subdivide(2)
+bool ObjectFN::subdivide2(int N)	// divides every edge n times. subdivide2() = subdivide(2)
 {
+	if (!consistsOfOnlyTriangles) {
+		cout << "kan inte subdivida om inte enbart trianglar i polyeder" << endl;
+		return false;
+	}
+
 	bool printar = false;
 
-	if (n < 2) {
+	Vec _Center = getCenter();
+	TYP _rad = sqrt((V[0].X - _Center) * (V[0].X - _Center));
+	cout << "Center: " << _Center << endl;
+	cout << "radius: " << _rad << endl;
+
+	if (N < 2) {
 		cout << "subdivide2-error, 2 <= n" << endl;
-	} else if (n == 2) {
+	} else if (N == 2) {
+		cout << "úse funktionen subdivide(void) om vid simpel subdivision" << endl;
 		return subdivide2();
 	}
 
-	int n2 = n*n;
+	int n2 = N*N;
 
-		// skapa nya vertex, edges och faces som ska användas.
-	int numVny = numF * n2;
-	int numEny = numE * n2;
-	int numFny = 2 + numF*n2/2;
-
-	
-
-	Vertex *nyV = new Vertex[numF*n2/2 + 2];
-	Edge *nyE = new Edge[numEny];
-	Face *nyF = new Face[numFny];
+	int numVny = numV;
+	int numEny = numE;
+	int numFny = numF;
 
 
+	Vertex *nyV = new Vertex[2 + numF*n2/2];
+	Edge *nyE = new Edge[numE * n2];
+	Face *nyF = new Face[numF * n2];
 
 
+	CopyVEF(nyV, nyE, nyF);
+
+	for (int e=0; e<numE; e++)
+	{
+			// om det redan är fixat med denna edgen: gå vidare
+		if (nyE[e].oppo - nyE >= numE)
+			continue;
+
+		Edge *_denna = &nyE[numEny];
+		Edge *_motsatta = &nyE[numEny + N - 1];
+
+		for (int n=0; n<N-2; n++)
+		{
+			_denna->next = _denna + 1;
+			_denna->oppo = _motsatta + N - 3 - (2*n);
+			_denna->prev = _denna - 1;
+			_denna->face = nyE[e].face;
+
+			_denna->fr = &nyV[numVny + n];
+			_denna->fr->from = _denna;
+			_denna->to = &nyV[numVny + n + 1];
+
+			_motsatta->fr = &nyV[numVny + N - n - 2];
+			_motsatta->to = &nyV[numVny + N - n - 3];
+			_motsatta->fr->from = _motsatta;
+
+			TYP frac_ = (n+1.0) / N;
+
+
+			nyV[numVny + n].X = nyE[e].to->X * frac_ + nyE[e].fr->X * (1-frac_);
+			nyV[numVny + n].from = _denna;
+
+
+			_motsatta->next = _motsatta + 1;
+			_motsatta->oppo = _denna + N - 3 - (2*n);
+			_motsatta->prev = _motsatta - 1;
+			_motsatta->face = nyE[e].oppo->face;
+
+				//fixa vertices också
+			_denna = _denna+1;
+			_motsatta = _motsatta+1;
+		}
+		nyV[numVny + N-2].X = nyE[e].to->X * (1.-1./N) + nyE[e].fr->X * (1. / N);
+
+		_motsatta->oppo 	= &nyE[e];
+		_motsatta->next 	= nyE[e].oppo->next;
+		_motsatta->prev 	= _motsatta - 1;
+		_motsatta->fr 		= _motsatta->prev->to;
+		_motsatta->fr->from = _motsatta;
+		_motsatta->to 		= _motsatta->oppo->fr;
+		_motsatta->face 	= nyE[e].oppo->face;
+		_motsatta->next->prev = _motsatta;
+
+		_denna->oppo 		= nyE[e].oppo;
+		_denna->next 		= nyE[e].next;
+		_denna->prev 		= _denna-1;
+		_denna->fr 			= _denna->prev->to;
+		_denna->fr->from 	= _denna;
+		_denna->to 			= _denna->oppo->fr;
+		_denna->face 		= nyE[e].face;
+		_denna->fr->from	= _denna;
+		_denna->next->prev 	= _denna;
+
+		_motsatta->prev->oppo->prev	= &nyE[e];
+		_denna->prev->oppo->prev = nyE[e].oppo;
+
+		nyE[e].oppo->oppo 	= _denna;
+		nyE[e].oppo->next 	= _denna->prev->oppo;
+		nyE[e].oppo->to 	= _denna->fr;
+
+		nyE[e].oppo 		= _motsatta;
+		nyE[e].next 		= _motsatta->prev->oppo;
+		nyE[e].to 			= _motsatta->fr;
+
+
+		numVny += (N-1);
+		numEny += 2*(N-1);
+	}
+
+
+	int k_;
+	for (int f=0; f<numF; f++)
+	{
+		Vec dAB = nyF[f].from->to->X - nyF[f].from->fr->X;
+		Vec dBC = nyF[f].from->prev->fr->X - nyF[f].from->to->X;
+
+		for (int r=1; r<N; r++)
+		{
+			k_ = numEny + 3*r*r - 2*r;
+			for (int n=0; n<2*r+1; n++)
+			{
+					// fixa triangel r^2 + n
+
+				if (n&1) {
+						// fixa vertex coords
+					if (r != N-1)
+						truncatedVertexNum(nyV + numVny, N, r, n, 1)->X = nyF[f].from->fr->X + dAB*(r+1.) + dBC*(n+1.)/2;
+
+					nyE[k_].fr 		= truncatedVertexNum(nyV + numVny, N, r, n, 0);
+					if (nyE[k_].fr)
+						nyE[k_].fr->from = &nyE[k_];
+					nyE[k_].to 		= truncatedVertexNum(nyV + numVny, N, r, n, 1);
+					nyE[k_].next 	= truncatedEdgeNum(nyE + numEny, N, r, n, 1);
+					nyE[k_].prev 	= truncatedEdgeNum(nyE + numEny, N, r, n, 2);
+					nyE[k_].oppo 	= truncatedEdgeNum(nyE + numEny, N, r, n-1, 2);
+					nyE[k_].face 	= &nyF[numFny + r*r - 1 + n];
+					nyE[k_].face->from = &nyE[k_];
+					k_++;
+
+					nyE[k_].fr 		= truncatedVertexNum(nyV + numVny, N, r, n, 1);
+					if (nyE[k_].fr)
+						nyE[k_].fr->from = &nyE[k_];
+					nyE[k_].to 		= truncatedVertexNum(nyV + numVny, N, r, n, 2);
+					nyE[k_].next 	= truncatedEdgeNum(nyE + numEny, N, r, n, 2);
+					nyE[k_].prev 	= truncatedEdgeNum(nyE + numEny, N, r, n, 0);
+					nyE[k_].oppo 	= truncatedEdgeNum(nyE + numEny, N, r, n+1, 0);
+					nyE[k_].face 	= &nyF[numFny + r*r - 1 + n];
+					nyE[k_].face->from = &nyE[k_];
+					k_++;
+
+					nyE[k_].fr 		= truncatedVertexNum(nyV + numVny, N, r, n, 2);
+					if (nyE[k_].fr)
+						nyE[k_].fr->from = &nyE[k_];
+					nyE[k_].to 		= truncatedVertexNum(nyV + numVny, N, r, n, 0);
+					nyE[k_].next 	= truncatedEdgeNum(nyE + numEny, N, r, n, 0);
+					nyE[k_].prev 	= truncatedEdgeNum(nyE + numEny, N, r, n, 1);
+					nyE[k_].oppo 	= truncatedEdgeNum(nyE + numEny, N, r-1, n-1, 1);
+					nyE[k_].face 	= &nyF[numFny + r*r - 1 + n];
+					nyE[k_].face->from = &nyE[k_];
+					k_++;
+
+
+				} else {
+					if (n > 0) {
+						nyE[k_].fr 		= truncatedVertexNum(nyV + numVny, N, r, n, 2);
+						if (nyE[k_].fr)
+							nyE[k_].fr->from = &nyE[k_];
+						nyE[k_].to 		= truncatedVertexNum(nyV + numVny, N, r, n, 0);
+						nyE[k_].next 	= truncatedEdgeNum(nyE + numEny, N, r, n, 1);
+						nyE[k_].prev 	= truncatedEdgeNum(nyE + numEny, N, r, n, 2);
+						nyE[k_].oppo 	= truncatedEdgeNum(nyE + numEny, N, r, n-1, 1);
+						nyE[k_].face 	= &nyF[numFny + r*r - 1 + n];
+						nyE[k_].face->from = &nyE[k_];
+						k_++;
+					}
+
+					if (r != N-1) {
+						nyE[k_].fr 		= truncatedVertexNum(nyV + numVny, N, r, n, 0);
+						if (nyE[k_].fr)
+							nyE[k_].fr->from = &nyE[k_];
+						nyE[k_].to 		= truncatedVertexNum(nyV + numVny, N, r, n, 1);
+						nyE[k_].next 	= truncatedEdgeNum(nyE + numEny, N, r, n, 2);
+						nyE[k_].prev 	= truncatedEdgeNum(nyE + numEny, N, r, n, 0);
+						nyE[k_].oppo 	= truncatedEdgeNum(nyE + numEny, N, r+1, n+1, 2);
+						nyE[k_].face 	= &nyF[numFny + r*r - 1 + n];
+						nyE[k_].face->from = &nyE[k_];
+						k_++;
+					}
+
+					if (n < 2*r)
+					{
+						nyE[k_].fr 		= truncatedVertexNum(nyV + numVny, N, r, n, 1);
+						if (nyE[k_].fr)
+							nyE[k_].fr->from = &nyE[k_];
+						nyE[k_].to 		= truncatedVertexNum(nyV + numVny, N, r, n, 2);
+						nyE[k_].next 	= truncatedEdgeNum(nyE + numEny, N, r, n, 0);
+						nyE[k_].prev 	= truncatedEdgeNum(nyE + numEny, N, r, n, 1);
+						nyE[k_].oppo 	= truncatedEdgeNum(nyE + numEny, N, r, n+1, 0);
+						nyE[k_].face 	= &nyF[numFny + r*r - 1 + n];
+						nyE[k_].face->from = &nyE[k_];
+						k_++;
+					}
+				}
+			}
+		}
+
+		Edge *_denna = nyF[f].from;
+		Edge *_dennaNext = _denna->next;
+		Edge *_motsatta = _denna->prev;
+		Edge *_motsattaPrev = _motsatta->prev;
+
+			// fixa första triangeln r=0, n=0:
+		_motsatta->prev = _denna->next = truncatedEdgeNum(nyE + numEny, N, 0, 0, 1);
+		_motsatta->face = _denna->face;
+
+		_denna->next->fr = _denna->to;
+		_denna->next->to = _motsatta->fr;
+		_denna->next->next = _motsatta;
+		_denna->next->prev = _denna;
+		_denna->next->oppo = truncatedEdgeNum(nyE + numEny, N, 1, 1, 2);
+		_denna->next->face = _denna->face;
+
+			// uppdatera denna och motsatta till rad 1
+		_denna = _dennaNext;
+		_dennaNext = _denna->next;
+		_motsatta = _motsattaPrev;
+		_motsattaPrev = _motsatta->prev;
+
+		for (int r=1; r<N-1; r++)
+		{
+
+			if (printar)	cout << "r = " << r << endl;
+
+				// fixa vänstersidan på rad r
+			_denna->next = truncatedEdgeNum(nyE + numEny, N, r, 0, 1);
+			_denna->next->prev = _denna;
+			_denna->next->fr = _denna->to;
+
+			_denna->prev = truncatedEdgeNum(nyE + numEny, N, r, 0, 2);
+			_denna->prev->next = _denna;
+			_denna->prev->to = _denna->fr;
+
+			_denna->prev->oppo->fr = _denna->fr;
+			_denna->prev->oppo->prev->to = _denna->fr;
+			_denna->face = _denna->next->face;
+			if (printar)	cout << "steg 1 "<< endl;
+
+				// fixa högersidan på rad r
+			_motsatta->prev = truncatedEdgeNum(nyE + numEny, N, r, 2*r, 1);
+			_motsatta->prev->next = _motsatta;
+			_motsatta->prev->to = _motsatta->fr;
+
+			_motsatta->next = truncatedEdgeNum(nyE + numEny, N, r, 2*r, 0);
+			_motsatta->next->prev = _motsatta;
+			_motsatta->next->fr = _motsatta->to;
+			if (printar)	cout << "steg 2 "<< endl;
+			
+			_motsatta->next->oppo->to = _motsatta->to;
+			_motsatta->next->oppo->next->fr = _motsatta->to;
+			_motsatta->face = _motsatta->next->face;
+			if (printar)	cout << "steg 3 "<< endl;
+
+				// stega vidare
+			_denna = _dennaNext;
+			_dennaNext = _denna->next;
+			_motsatta = _motsattaPrev;
+			_motsattaPrev = _motsatta->prev;
+		}	// end for r
+
+			// sista raden av korrigering r= N-1,  n=0
+		_denna = _dennaNext;
+		_dennaNext = _denna->next;
+
+		_denna->face = &nyF[numFny + (N-1)*(N-1) - 1];
+		_denna->prev->face = _denna->face;
+
+		_motsatta->face = _denna->face + 2*(N-1);
+		_motsatta->prev->face = _motsatta->face;
+		_motsatta->next = truncatedEdgeNum(nyE + numEny, N, N-1, 2*(N-1), 0);
+
+		_denna->next = truncatedEdgeNum(nyE + numEny, N, N-1, 0, 2);
+		_denna->next->prev = _denna;
+		_denna->next->next = _denna->prev;
+		_denna->prev->prev = _denna->next;
+		_denna->next->to = _denna->next->oppo->fr = _denna->next->oppo->prev->to = _denna->prev->fr;
+		_denna->next->fr = _denna->next->oppo->to = _denna->next->oppo->next->fr = _denna->to;
+
+		_denna = _dennaNext;
+		_dennaNext = _denna->next;
+
+		for (int n=2; n<2*(N-1); n += 2)
+		{
+			_denna->next = truncatedEdgeNum(nyE + numEny, N, N-1, n, 2);
+			_denna->prev = truncatedEdgeNum(nyE + numEny, N, N-1, n, 0);
+			_denna->next->prev = _denna->prev->next = _denna;
+			_denna->face = &nyF[numFny + (N-1)*(N-1) + n - 1];
+
+			_denna->prev->to = _denna->fr;
+			_denna->next->fr = _denna->next->oppo->to = _denna->next->oppo->next->fr = _denna->to;
+
+			_denna = _dennaNext;
+			_dennaNext = _denna->next;			
+		}
+
+		_denna->prev = truncatedEdgeNum(nyE + numEny, N, N-1, 2*N-2, 0);
+		_denna->prev->next = _denna;
+		_denna->prev->prev = _denna->next;
+		_denna->prev->fr = _denna->prev->oppo->to = _denna->prev->oppo->next->fr = _denna->next->to;
+		_denna->prev->to = _denna->fr;
+
+		numVny += (N-1)*(N-2)/2;
+		numEny += 3*N*N - 3*N;
+		numFny += (N*N - 1);
+	}	// end for f
+
+
+	for (int v=0; v<numVny; v++)
+	{
+		nyV[v].X -= _Center;
+		nyV[v].X *= _rad / sqrt(nyV[v].X*nyV[v].X);
+		nyV[v].X += _Center;
+	}
+
+
+	for (int f=0; f<numFny; f++)
+	{
+		nyF[f].update();
+	}
 
 	delete[] V;
 	delete[] E;
 	delete[] F;
+
 	numV = numVny;
 	numE = numEny;
 	numF = numFny;
@@ -1329,6 +1768,10 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 	ObjectFN *nyFN = 0;
 	switch(objType)
 	{
+		case OBJ_SIMPLE:{
+			nyFN = new ObjSimpleFN(Pos, Siz, Ori);
+			break;
+		}
 		case OBJ_CUBE:{
 			nyFN = new ObjCubeFN(Pos, Siz, Ori);
 			break;

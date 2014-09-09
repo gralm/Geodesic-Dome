@@ -104,26 +104,40 @@ int main(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
-/*
+
     bool hurgickdet1;
 
     //funkarInte2();
-    TYP c = cos(.3);
-    TYP s = sin(.3);
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.75, Mat(c,0,s, 0,1,0, -s,0,c));
+    //TYP c = cos(.3);
+    //TYP s = sin(.3);
+    TYP c = cos(0);
+    TYP s = sin(0);
     
+    //OBJ_TETRAHEDRON
+    
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_SIMPLE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(c,0,s, 0,1,0, -s,0,c));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_ICOSAHEDRON, Vec(0, 0, 0), Vec(2, 2, 2), Mat(c,0,s, 0,1,0, -s,0,c));
     nyobj1->test(0);
+    nyobj1->print();
+    nyobj1->subdivide2(4);
+    //nyobj1->print();
+    cout << "Startar test" << endl;
+    nyobj1->test(0);
+    cout << "Test slut" << endl;
+    
+    //return 0;
+
     //nyobj1->subdivide1();
     //nyobj1->test(0);
 
-    ObjectFN *nyobj2 = nyobj1->greenHousify(.17, .17);
-    Vec tf = Vec(10.8, .8, .8);
-    nyobj1->transform(&tf, 0, 0);
+    ObjectFN *nyobj2 = nyobj1->greenHousify(.07, .07);
+    Vec tf = Vec(.6, .6, .6);
+    nyobj1->transform(0, &tf, 0);
 
-    World::addObjectFN(nyobj2);*/
+    World::addObjectFN(nyobj2);
 
-    funkarInte1();
+    //funkarInte1();
 
     //return 0;
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
@@ -191,6 +205,8 @@ int main(int argc, char** argv)
     glutMotionFunc(Controller::motionFunc);
     glutSpecialFunc(Controller::specialFunc);
     glutSpecialUpFunc(Controller::specialUpFunc);
+
+
 
     glutMainLoop();
 
