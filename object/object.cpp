@@ -277,7 +277,7 @@ bool ObjectFN::updateConsistsOfOnlyTriangles()
 	return consistsOfOnlyTriangles;
 }
 
-void ObjectFN::CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
+bool ObjectFN::CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
 {
 	for (int v=0; v<numV; v++)
 	{
@@ -301,6 +301,26 @@ void ObjectFN::CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
 		nyF[f].from = nyE + (F[f].from - E);
 		nyF[f].Norm = F[f].Norm;
 	}
+
+	return true;
+}
+
+bool ObjectFN::EmptyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
+{
+	for (int v=0; v<numV; v++)
+		nyV[v].from = 0;
+
+	for (int e=0; e<numE; e++)
+	{
+		nyE[e].fr = nyE[e].to = 0;
+		nyE[e].next = nyE[e].prev = nyE[e].oppo = 0;
+		nyE[e].face = 0;
+	}
+
+	for (int f=0; f<numF; f++)
+		nyF[f].from = 0;
+
+	return true;
 }
 
 bool ObjectFN::transform(const Vec *Pos, const Vec *Siz, const Mat *Ori)
@@ -1036,6 +1056,12 @@ bool ObjectFN::subdivide2(int N)	// divides every edge n times. subdivide2() = s
 		return false;
 	}
 
+	if (N < 3)
+	{
+		cout << "fail om N < 3. N = " << N << endl;
+		return false;
+	}
+
 	bool printar = false;
 
 	Vec _Center = getCenter();
@@ -1606,6 +1632,91 @@ bool ObjectFN::truncate(TYP val) 	// truncated = 0.5, rectified = 1.0;
 
 bool ObjectFN::rectify()
 {
+	bool printar = false;
+
+	int numVny = numE/2;
+	int numEny = numE;
+	int numFny = numF;
+
+	Vertex *nyV = new Vertex[numE/2];
+	Edge *nyE = new Edge[numE + 2*numV + 2*numF - 4];
+	Face *nyF = new Face[numV + numF];
+
+	EmptyVEF(nyV, nyE, nyF);
+
+	Vertex **VfrE = new Vertex*[numE];
+
+
+		///////////////////////////
+	for (int e=0; e<numE; e++)
+		VfrE[e] = 0;
+
+	int v = 0;
+	for (int e=0; e<numE; e++)
+	{
+		if (!VfrE[e]) {
+			VfrE[e] = &nyV[v];
+			VfrE[E[e].oppo - E] = &nyV[v++];
+			VfrE[e]->X = (E[e].fr->X + E[e].to->X)*.5;
+		}
+	}
+
+
+	for (int v=0; v<numV; v++)
+	{
+		Edge *iterE = V[v].from;
+		if (printar)	cout << "iterE = E[" << V[v].from - E << "]" << endl;
+
+		int numEround = 0;		// Antalet vertieces runt hörnet
+		Edge *nyYttreE = &nyE[iterE->oppo - E];
+		Edge *nyInreE = &nyE[numEny];
+
+		do {
+			nyYttreE->fr = VfrE[iterE - E];
+			nyYttreE->to = VfrE[iterE->oppo->next - E];
+			nyYttreE->next = &nyE[iterE->oppo->next - E];
+			nyYttreE->prev = &nyE[iterE->oppo->prev - E];
+			nyYttreE->oppo = nyInreE;
+			nyYttreE->face = &nyF[iterE->oppo->face - F];
+			nyYttreE->face->from = nyYttreE;
+
+
+			nyInreE->fr = VfrE[iterE->oppo->next - E];
+			nyInreE->fr->from = nyInreE;
+			nyInreE->to = VfrE[iterE - E];
+			nyInreE->prev = (iterE->oppo->next == V[v].from)? (&nyE[numEny + 0]): (nyInreE + 1);nyInreE->prev->next = nyInreE;
+			nyInreE->oppo = nyYttreE;
+			nyInreE->face = &nyF[numF + v];
+			nyInreE->face->from = nyInreE;
+
+			iterE = iterE->oppo->next;
+
+			nyInreE++;
+			nyYttreE = &nyE[iterE->oppo - E];
+
+			numEround++;
+		} while(iterE != V[v].from);
+
+		numEny += numEround;
+		numFny += 1;
+	}
+
+	for (int f=0; f<numFny; f++)
+		nyF[f].update();
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	numV = numVny;
+	numE = numEny;
+	numF = numFny;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	delete[] VfrE;
 	return true;
 }
 
@@ -1815,6 +1926,17 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			nyFN = new ObjCubeFN(Pos, Siz * (1+sqrt(2)), Ori);
 			nyFN->truncate(2. - sqrt(2));
 			cout << "trunkerad" << endl;
+			break;
+		}
+		case OBJ_ICOSIDODECAHEDRON: {
+			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
+			
+			nyFN->rectify();
+			break;
+		}
+		case OBJ_CUBOCTAHEDRON: {
+			nyFN = new ObjCubeFN(Pos, Siz, Ori);
+			nyFN->rectify();
 			break;
 		}
 		default:

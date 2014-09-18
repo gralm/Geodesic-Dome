@@ -12,6 +12,8 @@
 #define OBJ_ICOSAHEDRON 				16
 #define OBJ_OCTAHEDRON 					17
 #define OBJ_TRUNCATED_CUBE				18
+#define OBJ_ICOSIDODECAHEDRON			20
+#define OBJ_CUBOCTAHEDRON				21
 
 
 
@@ -77,7 +79,8 @@ protected:
 	Edge *E;
 	Face *F;	// 
 
-	void CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF);
+	bool CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF);
+	bool EmptyVEF(Vertex *nyV, Edge *nyE, Face *nyF);
 	static int truncatedEdgeNum(int _N, int _r, int _n, int _p);
 	static Vertex *truncatedVertexNum(Vertex *_Start, int _N, int _r, int _n, int _p);
 	static Edge *truncatedEdgeNum(Edge *_Start, int _N, int _r, int _n, int _p);
@@ -102,13 +105,13 @@ public:
 	bool makeDual();
 	bool truncate(TYP val);		// 0 < val < 1,		0 < truncated < 1, rectified = 1.0;
 
-	bool truncate2(TYP val);		// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
+	bool truncate2(TYP val);	// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
 	bool rectify();				// truncate(val = 1.0)
+	bool snub(int n);
 
 	Vec getCenter();
 
-		// Ange noll om du inte vill göra		
-		// 
+		// Ange noll om du inte vill göra
 	bool transform(const Vec *Pos, const Vec *Siz, const Mat *Ori);	
 
 	TYP normalizeRadius();

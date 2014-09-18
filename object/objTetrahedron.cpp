@@ -32,6 +32,11 @@ ObjTetrahedronFN::ObjTetrahedronFN(const Vec &Pos, const Vec &Siz, const Mat &Or
 	E[10].set(V,E, F, 2, 1,11, 9, 6, 3);
 	E[11].set(V,E, F, 1, 0, 9,10, 0, 3);
 
+	V[0].from = &E[0];
+	V[1].from = &E[1];
+	V[2].from = &E[4];
+	V[3].from = &E[2];
+
 	F[0].from = &E[0];		F[0].Norm = (V[2].X * (-2.0*s2/s3)) * Ori;
 	F[1].from = &E[3];		F[1].Norm = (V[1].X * (-2.0*s2/s3)) * Ori;
 	F[2].from = &E[6];		F[2].Norm = (V[0].X * (-2.0*s2/s3)) * Ori;

@@ -116,28 +116,33 @@ int main(int argc, char** argv)
     //OBJ_TETRAHEDRON
     
     //ObjectFN *nyobj1 = World::addObjectFN(OBJ_SIMPLE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
     //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1), Mat(c,0,s, 0,1,0, -s,0,c));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_ICOSAHEDRON, Vec(0, 0, 0), Vec(2, 2, 2), Mat(c,0,s, 0,1,0, -s,0,c));
-    nyobj1->test(0);
-    nyobj1->print();
-    nyobj1->subdivide2(4);
+    /*ObjectFN *nyobj1 = World::addObjectFN(OBJ_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.5, Mat(c,0,s, 0,1,0, -s,0,c));
+   
+    //nyobj1->rectify();
+    //nyobj1->subdivide2(4);
+    //nyobj1->test(0);
     //nyobj1->print();
-    cout << "Startar test" << endl;
-    nyobj1->test(0);
-    cout << "Test slut" << endl;
-    
+
     //return 0;
 
-    //nyobj1->subdivide1();
-    //nyobj1->test(0);
 
-    ObjectFN *nyobj2 = nyobj1->greenHousify(.07, .07);
+
+    nyobj1->test(0);
+    //nyobj1->print();
+    nyobj1->subdivide2(3);
+    nyobj1->makeDual();
+    nyobj1->test(0);
+    ObjectFN *nyobj2 = nyobj1->greenHousify(.03, .03);
     Vec tf = Vec(.6, .6, .6);
     nyobj1->transform(0, &tf, 0);
 
-    World::addObjectFN(nyobj2);
+    World::addObjectFN(nyobj2);*/
 
-    //funkarInte1();
+
+
+    funkarInte1();
 
     //return 0;
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
@@ -217,41 +222,19 @@ int main(int argc, char** argv)
 
 void funkarInte1()
 {
-    TYP c = cos(.3);
-    TYP s = sin(.3);
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.5, Mat(c,0,s, 0,1,0, -s,0,c));
-    //nyobj1->test();
-    cout << "hit kom jag 1" << endl;
-    nyobj1->print();
-    nyobj1->truncate(.55);
-
-    //nyobj1->subdivide1();
-    cout << "hit kom jag 2" << endl;
-    nyobj1->test(OBJ_TYPE_SPHERICAL);
-    cout << "hit kom jag 3" << endl;
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.5, Mat(1,0,0, 0,1,0, 0,0,1));   
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_ICOSIDODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.0, Mat(1,0,0, 0,1,0, 0,0,1));   
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_ICOSIDODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1, Mat(1,0,0, 0,1,0, 0,0,1)); 
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBOCTAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1, Mat(1,0,0, 0,1,0, 0,0,1)); 
+    //nyobj1->print();
+    cout << "rectifyar" << endl;
+    nyobj1->rectify();
+    nyobj1->rectify();
+    //nyobj1->print();
+    nyobj1->test(0);
 }
 
 void funkarInte2()
 {
-    TYP c = 1;// cos(.3);
-    TYP s = 0.;// sin(.3);
-    Mat Ori = Mat(c,0,s, 0,1,0, -s,0,c);
-    Vec Siz = Vec(1, 1, 1) * (1+sqrt(2));
-    Vec Pos = Vec(0, 0, 0);
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TRUNCATED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
-        
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,0,s, 0,1,0, -s,0,c));
-    nyobj1->truncate(2. - sqrt(2));
-    
-    //nyobj1->test(0);
-    //nyobj1->truncate(2. - sqrt(2));
-    //World::addObjectFN(nyobj1);
-        
-    cout << "kom hit" << endl;
-    //nyobj1->test(OBJ_TYPE_SPHERICAL);
-    cout << "kom hit 1" << endl;
-    nyobj1->subdivide1();
-    cout << "kom hit 3" << endl;
-    nyobj1->test(OBJ_TYPE_SPHERICAL);
-    cout << "kom hit 5" << endl;
+
 }
