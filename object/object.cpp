@@ -61,6 +61,56 @@ void Face::update()
 		cout << "För dålig precision för att skapa normal i facet" << endl;
 }
 
+
+Vec Face::getCenter()
+{
+	int n = 1;
+	Edge *iterE = from;
+	Vec Ret_ = iterE->fr->X;
+	do {
+		iterE = iterE->next;
+		Ret_ += iterE->fr->X;
+		n++;
+	} while(iterE != from);
+
+	return Ret_ / n;
+}
+
+int Face::countEdges()
+{
+	int k = 0;
+	Edge *iterE = from;
+	do {
+		iterE = iterE->next;
+		k++;
+	} while(iterE != from);
+	return k;
+}
+
+TYP Face::maxSinErr(int &N)		// N = num of edges
+{
+	TYP maxErr2 = 0.;
+	N = 0;
+	Edge *iterE = from;
+
+	do {
+		Vec thisVec = (iterE->to->X - iterE->fr->X);
+		TYP val2 = thisVec * Norm;
+		val2 = val2*val2 / (thisVec*thisVec);
+
+		if (val2 > maxErr2)
+			maxErr2 = val2;
+
+		iterE = iterE->next;
+		if (++N > 20)
+			return -1.0;
+
+	} while(iterE != from);
+
+	return sqrt(maxErr2);
+}
+
+
 void Edge::print(Vertex *V0, Edge *E0, Face *F0)
 {
 	cout << "E[" << (this - E0) << "] {fr=" << (fr-V0) << ",\tto=" << (to-V0);
@@ -279,27 +329,36 @@ bool ObjectFN::updateConsistsOfOnlyTriangles()
 
 bool ObjectFN::CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF)
 {
-	for (int v=0; v<numV; v++)
+	if (nyV) 
 	{
-		nyV[v].from = nyE + (V[v].from - E);
-		nyV[v].X = V[v].X;
-		nyV[v].Norm = V[v].Norm;
+		for (int v=0; v<numV; v++)
+		{
+			nyV[v].from = nyE + (V[v].from - E);
+			nyV[v].X = V[v].X;
+			nyV[v].Norm = V[v].Norm;
+		}
 	}
 
-	for (int e=0; e<numE; e++)
+	if (nyE) 
 	{
-		nyE[e].fr = nyV + (E[e].fr - V);
-		nyE[e].to = nyV + (E[e].to - V);
-		nyE[e].next = nyE + (E[e].next - E);
-		nyE[e].prev = nyE + (E[e].prev - E);
-		nyE[e].oppo = nyE + (E[e].oppo - E);
-		nyE[e].face = nyF + (E[e].face - F);
-	}
+		for (int e=0; e<numE; e++)
+		{
+			nyE[e].fr = nyV + (E[e].fr - V);
+			nyE[e].to = nyV + (E[e].to - V);
+			nyE[e].next = nyE + (E[e].next - E);
+			nyE[e].prev = nyE + (E[e].prev - E);
+			nyE[e].oppo = nyE + (E[e].oppo - E);
+			nyE[e].face = nyF + (E[e].face - F);
+		}	
+	}		
 
-	for (int f=0; f<numF; f++)
+	if (nyF) 
 	{
-		nyF[f].from = nyE + (F[f].from - E);
-		nyF[f].Norm = F[f].Norm;
+		for (int f=0; f<numF; f++)
+		{
+			nyF[f].from = nyE + (F[f].from - E);
+			nyF[f].Norm = F[f].Norm;
+		}
 	}
 
 	return true;
@@ -375,13 +434,22 @@ bool ObjectFN::test(unsigned int shapeType_) const
 	{
 		TYP edgeLen = (E[e].to->X - E[e].fr->X) * (E[e].to->X - E[e].fr->X);
 
-		if (edgeLen < minEdgeLenSq) {
+		/*if (edgeLen < minEdgeLenSq) {
 			minEdgeLenSq = edgeLen;
 			minEdgeLenId = e;
 		}
 		
 		if (edgeLen < minEdgeLenSq) {
 			minEdgeLenSq = edgeLen;
+			maxEdgeLenId = e;
+		}*/
+		if (edgeLen < minEdgeLenSq) {
+			minEdgeLenSq = edgeLen;
+			minEdgeLenId = e;
+		}
+		
+		if (edgeLen > maxEdgeLenSq) {
+			maxEdgeLenSq = edgeLen;
 			maxEdgeLenId = e;
 		}
 
@@ -1720,6 +1788,220 @@ bool ObjectFN::rectify()
 	return true;
 }
 
+
+bool ObjectFN::expand(TYP val) {		// val är en radiella förändringsfaktorn, val > 1.
+
+
+	bool printar = false;
+
+	int numVny = numV;
+	int numEny = numE;
+	int numFny = numF;
+
+	Vertex *nyV = new Vertex[2 + 3*numE/2 - numF - numV];
+	Edge *nyE = new Edge[4*numE];
+	Face *nyF = new Face[numV + numE/2 + numF];
+
+	if (printar)		cout << "numVny: " << 2 + 3*numE/2 - numF - numV << endl;
+	if (printar)		cout << "numEny: " << 4*numE << endl;
+	if (printar)		cout << "numFny: " << numV + numE/2 + numF << endl;
+
+
+	frV__ = nyV;
+	toV__ = nyV + 2 + 3*numE/2 - numF - numV;
+	frE__ = nyE;
+	toE__ = nyE + 4*numE;
+	frF__ = nyF;
+	toF__ = nyF + numV + numE/2 + numF;
+
+
+
+
+	CopyVEF(nyV, nyE, nyF);
+
+
+	for (int v=0; v<numV; v++)
+	{
+		if (printar)		cout << endl << "\tv: " << v << endl;
+		Edge *iterE = nyV[v].from;
+		if (printar)		cout << "iterE =nyE[" << iterE - nyE << "]" << endl;
+		check(iterE, 0);
+		nyV[v].X += iterE->face->Norm*val;
+		if (printar)		cout << "nyV[" << v << "].X = " << nyV[v].X << endl;
+		iterE = iterE->oppo->next;
+		if (printar)		cout << "iterE = " << iterE - nyE << endl;
+		check(iterE, 0);
+		int k= 0;
+		Edge *firstEdge = &nyE[numEny];
+		do {
+
+				// befintliga sidor och kanter uppdateras
+			iterE->fr = iterE->prev->to = &nyV[numVny];
+			if (printar)		cout << "iterE->fr = nyE[" << iterE - nyE << "].fr = iterE->prev->to = nyE[" << iterE->prev - nyE << "].to = nyV[" << numVny << "]" << endl;
+			check(iterE->fr, 1);
+			
+				// ny vertex skapas
+			//nyV[numVny].X = iterE->fr->X;
+			nyV[numVny].X = V[v].X;
+			nyV[numVny].X += iterE->face->Norm*val;
+			if (printar)		cout << "nyV[" << numVny << "].X = " << V[v].X << " + " << iterE->face->Norm*val << " = " << nyV[numVny].X << endl;
+
+			nyV[numVny].from = &nyE[numEny];
+			if (printar)		cout << "nyV[" << numVny << "].from = nyE[" << numEny << "]" << endl;
+			check(nyV[numVny].from, 2);
+
+			//iterE->prev->to = iterE->fr = &nyV[numVny];
+			//cout << "nyE[" << iterE->prev - nyE << "].to = nyE[" << iterE - nyE << "].fr = nyV[" << numVny << "]" << endl;
+			//check(iterE->fr, 3);
+
+
+
+				// sida skapad vid kanten uppdateras
+			nyE[numEny].fr = iterE->fr;
+			if (printar)		cout << "nyE[" << numEny << "].fr = nyV[" << iterE->fr - nyV << "]" << endl;
+			check(nyE[numEny].fr, 4);
+			nyE[numEny].to = iterE->prev->oppo->fr;
+			if (printar)		cout << "nyE[" << numEny << "].to = nyV[" << iterE->prev->oppo->fr  - nyV<< "]" << endl;
+			check(nyE[numEny].to, 5);
+			nyE[numEny].face = &nyF[numFny];
+			if (printar)		cout << "nyE[" << numEny << "].face = nyF[" << numFny << "]" << endl;
+			check(nyE[numEny].face, 6);
+
+			nyE[numEny].prev = &nyE[numEny+1];
+			if (printar)		cout << "nyE[" << numEny << "].prev = nyE[" << numEny+1 << "]" << endl;
+			nyE[numEny].prev->next = &nyE[numEny];
+			if (printar)		cout << "nyE[" << nyE[numEny].prev - nyE << "].next = nyE[" << numEny << "]" << endl;
+
+
+
+			numVny++;
+			numEny++;
+			if (printar)		cout << "numXny = " << numVny << ", " << numEny << ", " << numFny << endl;
+			iterE = iterE->oppo->next;
+			if (printar)		cout << "iterE = nyE[" << iterE - nyE << "]" << endl;
+			check(iterE, 7);
+			if (++k>5){
+				cout << "k blev too big" << endl;
+				return false;
+			}
+
+		} while(iterE != nyV[v].from);
+
+		nyE[numEny].fr = &nyV[v];
+		if (printar)		cout << "nyE[" << numEny << "].fr = nyV[" << v << "]" << endl;
+		nyE[numEny].to = iterE->prev->oppo->fr;
+		if (printar)		cout << "nyE[" << numEny << "].to = nyV[" << iterE->prev->oppo->fr - nyV << "]" << endl;
+		nyE[numEny].face = &nyF[numFny];
+		if (printar)		cout << "nyE[" << numEny << "].face = nyF[" << &nyF[numF] - nyF << "]" << endl;
+
+		
+		
+		nyE[numEny].prev = firstEdge;
+		if (printar)		cout << "nyE[" << numEny << "].prev = nyE[" << firstEdge - nyE << "]" << endl;
+		firstEdge->next = &nyE[numEny];
+		if (printar)		cout << "nyE[" << firstEdge - nyE << "].next = nyE[" << numEny << "]" << endl;
+
+		nyV[v].from = &nyE[numEny];
+		if (printar)		cout << "nyV[" << v << "].from = nyE[" << numEny - 1 << "]" << endl;
+		nyF[numFny].from = &nyE[numEny];
+		if (printar)		cout << "nyF[" << numFny << "].from = nyE[" << &nyE[numEny] - nyE << "]" << endl;
+		numFny++;
+		numEny++;
+		if (printar)		cout << "numXny = " << numVny << ", " << numEny << ", " << numFny << endl;
+	}
+
+
+	if (printar)		cout << "printar allt:" << endl;
+	if (printar)		print(nyV, nyE, nyF, numVny, numEny, numFny);
+	if (printar)		cout << "Ska uppdatera fäjsen" << endl;
+
+	if (printar)		cout << endl << endl << "Fixa edgesarnanarnarna" << endl;
+	for (int e=0; e<numE; e++)
+	{
+		if (&nyE[e] < nyE[e].oppo)
+			continue;
+
+		if (printar)		cout << "Skapar face mellan nyE[" << e << "] och nyE[" << nyE[e].oppo - nyE << "]" << endl;
+
+		nyE[numEny+0].fr = nyE[e].to;
+		nyE[numEny+0].to = nyE[e].fr;
+		nyE[numEny+0].next = &nyE[numEny+1];
+		nyE[numEny+0].prev = &nyE[numEny+3];
+		nyE[numEny+0].oppo = &nyE[e];
+		nyE[numEny+0].face = &nyF[numFny];
+
+		nyE[numEny+1].fr = nyE[e].fr;
+		nyE[numEny+1].to = nyE[e].oppo->to;
+		nyE[numEny+1].next = &nyE[numEny+2];
+		nyE[numEny+1].prev = &nyE[numEny+0];
+		nyE[numEny+1].oppo = nyE[e].fr->from->prev;
+		if (printar)		cout << "nyE[" << numEny + 1 << "].oppo = nyE[" << nyE[e].fr->from->prev -nyE << "]" << endl;
+		nyE[numEny+1].face = &nyF[numFny];
+
+		nyE[numEny+2].fr = nyE[e].oppo->to;
+		nyE[numEny+2].to = nyE[e].oppo->fr;
+		nyE[numEny+2].next = &nyE[numEny+3];
+		nyE[numEny+2].prev = &nyE[numEny+1];
+		nyE[numEny+2].oppo = nyE[e].oppo;
+		nyE[numEny+2].face = &nyF[numFny];
+
+		nyE[numEny+3].fr = nyE[e].oppo->fr;
+		nyE[numEny+3].to = nyE[e].to;
+		nyE[numEny+3].next = &nyE[numEny+0];
+		nyE[numEny+3].prev = &nyE[numEny+2];
+		nyE[numEny+3].oppo = nyE[e].to->from;
+		if (printar)		cout << "nyE[" << numEny + 3 << "].oppo = nyE[" << nyE[e].to->from -nyE << "]" << endl;
+		nyE[numEny+3].face = &nyF[numFny];
+
+
+		nyE[e].oppo->to->from->oppo = &nyE[numEny+1];
+		if (printar)		cout << "nyE[" << nyE[e].oppo->to->from - nyE << "].oppo = nyE[" << numEny + 1 << "]" << endl;
+
+		nyE[e].to->from->oppo = &nyE[numEny+3];
+		if (printar)		cout << "nyE[" << nyE[e].to->from - nyE << "].oppo = nyE[" << numEny + 3 << "]" << endl;
+
+		nyE[e].oppo->oppo = &nyE[numEny+2];
+		if (printar)		cout << "nyE[" << nyE[e].oppo - nyE << "].oppo = nyE[" << numEny + 2 << "]" << endl;
+
+		nyE[e].oppo = &nyE[numEny+0];
+		if (printar)		cout << "nyE[" << e << "].oppo = nyE[" << numEny + 0 << "]" << endl;
+		
+		nyF[numFny].from = &nyE[numEny+0];
+
+		numEny += 4;
+		numFny++;
+	}
+
+
+	for (int f=0; f<numFny; f++)
+	{
+		nyF[f].update();
+	}
+
+	if (printar)		cout << "Kom hit " << endl;
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	numV = numVny;
+	numE = numEny;
+	numF = numFny;
+
+
+	cout << "numV: " << numV << endl;
+	cout << "numE: " << numE << endl;
+	cout << "numF: " << numF << endl;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	return true;
+}
+
+
+
 	// bygger hörnen korrekt.
 ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 {
@@ -1871,6 +2153,152 @@ ObjectFN *ObjectFN::greenHousify(TYP b, TYP h)
 
 	return Pin;
 }
+
+bool ObjectFN::rotatePolygons(TYP angle, int N)			// Rotate faces with N vertices by angle
+{
+	int *inN = new int[numV];
+	list<int> rotF;
+
+	for (int v=0; v<numV; v++)
+		inN[v] = 0;
+
+	cout << "numF = " << numF << endl;
+
+
+		// kontrollera först att inga vertexes är bundna till två fäjses med N vertices
+	for (int f=0; f<numF; f++)
+	{
+		int k=0;
+		Edge *iterE = F[f].from;
+		do {
+			iterE = iterE->next;
+			k++;
+		} while(iterE != F[f].from);
+		
+		//cout << "F[" << f << "] = " << k << endl;
+		if (k==N) {
+			rotF.push_back(f);
+			do {
+				inN[iterE->fr - V]++;
+				iterE = iterE->next;
+			} while(iterE != F[f].from);
+		}
+	}
+
+	for (int v=0; v<numV; v++) {
+		//cout << "V[" << v << "] = " << inN[v] << endl;
+		if (inN[v] > 1){
+			delete[] inN;
+			cout << "Cannot rotate polygons. V[" << v << "] connected to more than one face with " << N << "vertices" << endl;
+			return false;
+		}
+	}
+
+			// rotate
+
+	TYP c = cos(angle);
+	TYP s = sin(angle);
+
+	for (list<int>::iterator iti = rotF.begin(); iti != rotF.end(); iti++)
+	{
+		Vec Cen = F[*iti].getCenter();
+
+		Edge *iterE = F[*iti].from;
+		do {
+			iterE = iterE->next;
+			iterE->fr->X = (iterE->fr->X - Cen)*c + ((iterE->fr->X - Cen) & F[*iti].Norm)*s + Cen;
+		} while(iterE != F[*iti].from);
+	}
+
+	for (int f=0; f<numF; f++)
+		F[f].update();
+
+	delete[] inN;
+
+	return true;
+}
+
+bool ObjectFN::splitBrokenTetragons()
+{
+	bool printar = false;
+	bool *splitEdge = new bool[numF];
+
+	int edges;
+	int edgesToBeSplit = 0;
+	for (int f=0; f<numF; f++)
+	{
+		splitEdge[f] = false;
+		TYP err = F[f].maxSinErr(edges);
+		if (err > 0.0001 && edges == 4) {
+			splitEdge[f] = true;
+			edgesToBeSplit++;
+		}
+		//cout << "F[" << f << "]:\t" << tjena << ",\t" << hej << ",\t" << F[f].countEdges() << endl;
+	}
+
+	Vertex *nyV = new Vertex[numV];
+	Edge *nyE = new Edge[numE + 2*edgesToBeSplit];
+	Face *nyF = new Face[numF + edgesToBeSplit];
+
+	CopyVEF(nyV, nyE, nyF);
+	int numFny = numF;
+
+	for (int f=0; f<numF; f++)
+	{
+		if (splitEdge[f] == false)
+			continue;
+
+
+		Edge *iterE = nyF[f].from;
+
+		Vec dist1 = iterE->next->to->X - iterE->fr->X;
+		Vec dist2 = iterE->to->X - iterE->prev->fr->X;
+
+		if (dist1*dist1 > dist2*dist2)
+			iterE = iterE->next;
+
+
+			// första sidan
+		iterE->prev->next = &nyE[numE+1];
+		iterE->prev->face = &nyF[numFny];
+		iterE->prev->prev->prev = &nyE[numE+1];
+		iterE->prev->prev->face = &nyF[numFny];
+		nyE[numE+1].face = &nyF[numFny];
+		nyF[numFny].from = &nyE[numE+1];
+		nyE[numE+1].next = iterE->prev->prev;
+		nyE[numE+1].prev = iterE->prev;
+		nyE[numE+1].fr = iterE->fr;
+		nyE[numE+1].to = iterE->next->to;
+		nyE[numE+1].oppo = &nyE[numE];
+		
+
+			// andra sidan
+		iterE->next->next = &nyE[numE];
+		iterE->prev = &nyE[numE];
+		nyE[numE].face = iterE->face;
+		nyE[numE].next = iterE;
+		nyE[numE].prev = iterE->next;
+		nyE[numE].fr = iterE->next->to;
+		nyE[numE].to = iterE->fr;
+		nyE[numE].oppo = &nyE[numE+1];
+
+
+		nyF[numFny].update();
+		nyF[f].update();
+		numFny++;
+		numE += 2;
+	}
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+	numF = numFny;
+}
+
 
 
 ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const Mat &Ori)

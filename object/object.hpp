@@ -1,6 +1,8 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 
+#define OBJ_DIR_CW						0
+#define OBJ_DIR_CCW						1
 
 #define OBJ_SIMPLE						19
 #define OBJ_CUBE						10
@@ -25,6 +27,7 @@
 
 // https://www8.cs.umu.se/kurser/5DV009/HT08/handouts/HO%20E%20-%20Subdivision.pdf
 #include <vector>
+#include <list>
 #include "../defines.hpp"
 #include <cstring>
 
@@ -49,6 +52,9 @@ struct Face {
 
 	void print(const Face *zero);
 	void update();
+	Vec getCenter();
+	int countEdges();
+	TYP maxSinErr(int &N);		// , N = num of edges
 };
 
 struct Edge {
@@ -79,7 +85,7 @@ protected:
 	Edge *E;
 	Face *F;	// 
 
-	bool CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF);
+	bool CopyVEF(Vertex *nyV, Edge *nyE, Face *nyF);	// Kopiera alla som inte är 0
 	bool EmptyVEF(Vertex *nyV, Edge *nyE, Face *nyF);
 	static int truncatedEdgeNum(int _N, int _r, int _n, int _p);
 	static Vertex *truncatedVertexNum(Vertex *_Start, int _N, int _r, int _n, int _p);
@@ -108,6 +114,11 @@ public:
 	bool truncate2(TYP val);	// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
 	bool rectify();				// truncate(val = 1.0)
 	bool snub(int n);
+
+		//nya egdes får längden: val * sqrt(2 - 2*NA*NB),  där NA och NB är två grannsidors normaler.
+	bool expand(TYP val);		// val är en radiella förändringsfaktorn, val > 1.
+	bool rotatePolygons(TYP angle, int N);	// Rotate faces with N vertices by angle
+	bool splitBrokenTetragons();
 
 	Vec getCenter();
 
