@@ -8,6 +8,7 @@
 #include "graphic/graphic.hpp"
 #include "controller/controller.hpp"
 #include "object/object.hpp"
+#include "object/objDodecahedron.hpp"
 
 
 class Graphic;
@@ -100,7 +101,7 @@ int main(int argc, char** argv)
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(250, 250);
+    glutInitWindowSize(1000, 1000);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
@@ -111,28 +112,22 @@ int main(int argc, char** argv)
     TYP s = sin(0.7);
     
     
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_SIMPLE, Vec(0, 0, 0), Vec(1, 1, 1), Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.8, Mat(c,s,0, -s,c,0, 0,0,1));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.5, Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_ICOSAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.5, Mat(c,0,s, 0,1,0, -s,0,c));
-    nyobj1->expand(sqrt(2-2/sqrt(5))/2.2);
-    nyobj1->rotatePolygons(0.203, 5);
-    nyobj1->splitBrokenTetragons();
-    nyobj1->test(0);
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_SNUBDODECAHEDRON_CW, Vec(.6, .2, 0), Vec(1, 1, 1)*.5, Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj3 = World::addObjectFN(OBJ_SNUBDODECAHEDRON_CCW, Vec(-.6, .2, 0), Vec(1, 1, 1)*.5, Mat(1,0,0, 0,1,0, 0,0,1));
+    //nyobj1->print();
+    nyobj1->test(1);
 
-    //ObjectFN *nyobj2 = nyobj1->greenHousify(0.05, 0.05);
-    //Vec asdfasdfasdfsdafasdf(.7, 7, 7); 
-    //nyobj1->transform(&asdfasdfasdfsdafasdf, 0, 0);  
-    //World::addObjectFN(nyobj2);
-    
+    ObjectFN *nyobj2 = nyobj1->greenHousify(.05, .05);
+    ObjectFN *nyobj4 = nyobj3->greenHousify(.05, .05);
+       //ObjectFN *nyobj2 = nyobj1->greenHousify(.07, .07);
+    World::addObjectFN(nyobj2);
+    World::addObjectFN(nyobj4);
 
+    Vec movva(1, 1, 1);
+    movva *= .8;
+    nyobj1->transform(0, &movva, 0);
+    nyobj3->transform(0, &movva, 0);
 
-
-
-
-    //funkarInte1();
-
-    //return 0;
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
     Graphic::createTexture(64, 64);
     Graphic::createTexture("pics/meny.bmp");

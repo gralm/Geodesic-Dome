@@ -61,13 +61,14 @@ void Graphic::drawRectangle(TYP xmin, TYP xmax, TYP ymin, TYP ymax, int texNum)
 
 void Graphic::drawObject(ObjectFN *ofn)
 {
+    bool printar = false;
     //cout << "kom hit" << endl;
     glEnableClientState(GL_NORMAL_ARRAY);
     int numOfFaces = 0;
     Face *Fac_ = ofn->getFaces(numOfFaces);
     glColor4f(1, 1, 1, 1.0);
     //cout << "antal faces: " << numOfFaces << endl;
-
+    if (printar)        cout << numOfFaces << " " << endl;
     for (int f=0; f<numOfFaces; f++)
     {
         Edge *from = Fac_[f].from;
@@ -75,10 +76,12 @@ void Graphic::drawObject(ObjectFN *ofn)
         glBegin(GL_POLYGON);
         //glBegin(GL_TRIANGLES);
         glNormal3f(Fac_[f].Norm.x, Fac_[f].Norm.y, Fac_[f].Norm.z);
+        if (printar)        cout << "Norm: " << Fac_[f].Norm << endl;
         do {
             Vertex *VVVVVVV = from->fr;
             Vec *asdf = &VVVVVVV->X;
             Vec *v_ = &from->fr->X;
+            if (printar)        cout << "\t[" << v_->x << ", " << v_->y << ", " << v_->z << "]\n";
             glVertex3f(v_->x, v_->y, v_->z);
             from = from->next;
         } while (from != Fac_[f].from);

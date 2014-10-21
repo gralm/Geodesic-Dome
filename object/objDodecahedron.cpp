@@ -122,12 +122,19 @@ ObjDodecahedronFN::ObjDodecahedronFN(const Vec &Pos, const Vec &Siz, const Mat &
 	F[10].from =&E[50];		F[10].Norm = -F[2].Norm;
 	F[11].from =&E[55];		F[11].Norm = Vec(0, 0, 1.);
 
-	for (int i=0; i<20; i++)
+	for (int i=0; i<numV; i++)
 		V[i].X *= .5;
 
 
 	for (int i=0; i<numV; i++)
 		V[i].X = Vec(V[i].X.x*Siz.x, V[i].X.y*Siz.y, V[i].X.z*Siz.z) * Ori + Pos;
+
+	for (int f=0; f<numF; f++)
+		F[f].update();
+
+	for (int i=0; i<numV; i++)
+		V[i].X *= 4/sqrt(10-sqrt(20));
+
 
 	consistsOfOnlyTriangles = false;
 

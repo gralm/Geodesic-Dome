@@ -51,6 +51,11 @@ void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int 
 	_F[_face].from = this;	//
 	_V[_fr].from = this;
 }
+TYP Edge::length()
+{
+	Vec _l = to->X - fr->X;
+	return sqrt(_l*_l);
+}
 
 void Face::update()
 {
@@ -64,13 +69,13 @@ void Face::update()
 
 Vec Face::getCenter()
 {
-	int n = 1;
+	int n = 0;
 	Edge *iterE = from;
-	Vec Ret_ = iterE->fr->X;
+	Vec Ret_ = Vec(0,0,0);
 	do {
-		iterE = iterE->next;
 		Ret_ += iterE->fr->X;
 		n++;
+		iterE = iterE->next;
 	} while(iterE != from);
 
 	return Ret_ / n;
@@ -255,11 +260,11 @@ ObjectFN::~ObjectFN()
 {
 	if (V && E && F)
 	{
-		cout << "ska döda obketet" << endl;
+		//cout << "ska döda obketet" << endl;
 		delete[] V;
 		delete[] E;
 		delete[] F;
-		cout << "Dödade objektet" << endl;
+		//cout << "Dödade objektet" << endl;
 	} else {
 		cout << "Går inte ta bort objekt, objektet är inte initierat propert " << endl;
 	}
@@ -306,6 +311,23 @@ TYP ObjectFN::normalizeRadius()
 	return rad;
 }
 
+void ObjectFN::edgeCompare(TYP &shortest, TYP &longest)
+{
+	Vec thisE = (E[0].to->X - E[0].fr->X);
+	TYP longest2 = thisE*thisE;
+	TYP shortest2 = thisE*thisE;
+	for (int e=1; e<numE; e++)
+	{
+		Vec thisE = (E[e].to->X - E[e].fr->X);
+		TYP thisE2 = thisE*thisE;
+		longest2 = max(thisE2, longest2);
+		shortest2 = min(thisE2, shortest2);
+	}
+
+	shortest = sqrt(shortest2);
+	longest = sqrt(longest2);
+	//return sqrt(longest2) - sqrt(shortest2);
+}
 
 bool ObjectFN::updateConsistsOfOnlyTriangles()
 {
@@ -400,6 +422,19 @@ bool ObjectFN::transform(const Vec *Pos, const Vec *Siz, const Mat *Ori)
 	}
 	return true;
 } 
+
+bool ObjectFN::normalizeNormals()
+{
+	Vec E1, E2;
+	for (int f=0; f<numF; f++)
+	{
+		E1 = F[f].from->to->X - F[f].from->fr->X;
+		E2 = F[f].from->next->to->X - F[f].from->next->fr->X;
+		E1 = E1 & E2;
+		E1.norm();
+		F[f].Norm = E1;
+	}
+}
 
 bool ObjectFN::test(unsigned int shapeType_) const
 {
@@ -621,15 +656,23 @@ void ObjectFN::print()
 	for (int v=0; v<numV; v++)
 		cout << "V[" << v << "] = {" << (V[v].from - E) << ",\t" << V[v].X << ",\t" << V[v].Norm << endl;
 
-	cout << endl << "\tE[n] {Vertex *fr,\tVertex *to,\tEdge *next,\tEdge *prev,\tEdge *oppo,\tFace *face}" << endl;
+	cout << endl << "\tE[n] {Vertex *fr,\tVertex *to,\tEdge *next,\tEdge *prev,\tEdge *oppo,\tFace *face\tLength}" << endl;
 	for (int e=0; e<numE; e++) {
 		cout << "E[" << e << "] {" << (E[e].fr - V) << ",\t" << (E[e].to - V) << ",\t" << (E[e].next - E) << ",\t";
-		cout << (E[e].prev - E) << ",\t" << (E[e].oppo - E) << ",\t" << (E[e].face - F) << "}" << endl;
+		cout << (E[e].prev - E) << ",\t" << (E[e].oppo - E) << ",\t" << (E[e].face - F) << ", " << E[e].length() << "}" << endl;
 	}
 
 	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
 	for (int f=0; f<numF; f++)
-		cout << "F[" << f << "] {" << F[f].from - E << ", " << F[f].Norm << "}" << endl;
+	{
+		Edge *iterE = F[f].from;
+		int k=0;
+		do {
+			iterE = iterE->next;
+			k++;
+		} while(iterE != F[f].from);
+		cout << "F[" << f << "] {" << F[f].from - E << ", " << F[f].Norm << ", " << k << "}" << endl;
+	}
 
 }
 
@@ -650,9 +693,17 @@ void ObjectFN::print(const Vertex *V_, const Edge *E_, const Face *F_, int numV_
 		cout << (E_[e].prev - E_) << ",\t" << (E_[e].oppo - E_) << ",\t" << (E_[e].face - F_) << "}" << endl;
 	}
 
-	cout << endl << "\tF[n] {Edge *from,\tVec Norm}" << endl;
+	cout << endl << "\tF[n] {Edge *from,\tVec Norm, Edges}" << endl;
 	for (int f=0; f<numF_; f++)
-		cout << "F[" << f << "] {" << F_[f].from - E_ << ", " << F_[f].Norm << "}" << endl;
+	{
+		Edge *iterE = F_[f].from;
+		int k=0;
+		do {
+			iterE = iterE->next;
+			k++;
+		} while(iterE != F_[f].from);
+		cout << "F[" << f << "] {" << F_[f].from - E_ << ", " << F_[f].Norm << ", " << k << "}" << endl;
+	}
 
 }
 
@@ -825,7 +876,10 @@ bool ObjectFN::subdivide1()
 }
 
 
-
+bool ObjectFN::subdivide1(int n)	// makes pyramids of surfaces with n edges
+{
+	return false;
+}
 
 
 
@@ -1789,6 +1843,28 @@ bool ObjectFN::rectify()
 }
 
 
+bool ObjectFN::setPolygonHeight(TYP h, int N)
+{
+	Vec C_ = getCenter();
+	cout << "Center: " << C_ << endl;
+
+	for (int f=0; f<numF; f++)
+	{
+		if (F[f].countEdges() != N)
+			continue;
+
+		Edge *iterE = F[f].from;
+		do {
+			TYP presentHeight = (iterE->fr->X - C_)*F[f].Norm;
+			iterE->fr->X += F[f].Norm * (h-presentHeight);
+			iterE = iterE->next;
+		} while(iterE != F[f].from);
+
+	}
+	return false;
+
+}
+
 bool ObjectFN::expand(TYP val) {		// val är en radiella förändringsfaktorn, val > 1.
 
 
@@ -1989,9 +2065,9 @@ bool ObjectFN::expand(TYP val) {		// val är en radiella förändringsfaktorn, v
 	numF = numFny;
 
 
-	cout << "numV: " << numV << endl;
-	cout << "numE: " << numE << endl;
-	cout << "numF: " << numF << endl;
+	if (printar)		cout << "numV: " << numV << endl;
+	if (printar)		cout << "numE: " << numE << endl;
+	if (printar)		cout << "numF: " << numF << endl;
 
 	V = nyV;
 	E = nyE;
@@ -2162,10 +2238,10 @@ bool ObjectFN::rotatePolygons(TYP angle, int N)			// Rotate faces with N vertice
 	for (int v=0; v<numV; v++)
 		inN[v] = 0;
 
-	cout << "numF = " << numF << endl;
+	//if (printar)		cout << "numF = " << numF << endl;
 
 
-		// kontrollera först att inga vertexes är bundna till två fäjses med N vertices
+		// kontrollera först att inga vertexes är bundna till två faces med N vertices
 	for (int f=0; f<numF; f++)
 	{
 		int k=0;
@@ -2198,6 +2274,11 @@ bool ObjectFN::rotatePolygons(TYP angle, int N)			// Rotate faces with N vertice
 
 	TYP c = cos(angle);
 	TYP s = sin(angle);
+	//cout << "Center1: " << F[0].getCenter() << " = " << (V[21].X + V[22].X + V[24].X + V[26].X + V[28].X)*.2 << endl;
+
+
+	cout << endl;
+
 
 	for (list<int>::iterator iti = rotF.begin(); iti != rotF.end(); iti++)
 	{
@@ -2209,6 +2290,7 @@ bool ObjectFN::rotatePolygons(TYP angle, int N)			// Rotate faces with N vertice
 			iterE->fr->X = (iterE->fr->X - Cen)*c + ((iterE->fr->X - Cen) & F[*iti].Norm)*s + Cen;
 		} while(iterE != F[*iti].from);
 	}
+
 
 	for (int f=0; f<numF; f++)
 		F[f].update();
@@ -2255,7 +2337,10 @@ bool ObjectFN::splitBrokenTetragons()
 		Vec dist2 = iterE->to->X - iterE->prev->fr->X;
 
 		if (dist1*dist1 > dist2*dist2)
+		{
 			iterE = iterE->next;
+			nyF[f].from = iterE;
+		}
 
 
 			// första sidan
@@ -2330,7 +2415,7 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			break;
 		}
 		case OBJ_DODECAHEDRON: {
-			nyFN = new ObjDodecahedronFN(Pos, Siz*sqrt(2. + 2./sqrt(5.)), Ori);
+			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
 			break;
 		}
 		case OBJ_TRUNCATED_TETRAHEDRON: {
@@ -2367,6 +2452,43 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			nyFN->rectify();
 			break;
 		}
+		case OBJ_RHOMBICOSIDODECAHEDRON: {
+			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
+			nyFN->expand(1/sqrt(2-2/sqrt(5)));
+			break;
+		}
+		case OBJ_SNUBDODECAHEDRON_CW: 
+		case OBJ_SNUBDODECAHEDRON_CCW: {
+			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
+    		nyFN->expand(Siz.x*1.0);
+			nyFN->rotatePolygons(.22874989202202764 * (objType==OBJ_SNUBDODECAHEDRON_CW? 1.0: -1.0), 5);
+    		/*
+    		if (objType == OBJ_SNUBDODECAHEDRON_CCW)
+    			nyFN->rotatePolygons(-.22874989202202764, 5);
+    		else
+    			nyFN->rotatePolygons(.22874989202202764, 5);*/
+    		nyFN->splitBrokenTetragons();
+    		nyFN->setPolygonHeight(1.9809159472818407 * Siz.x, 5);
+    		nyFN->normalizeNormals();
+			break;
+		}
+
+		case OBJ_RHOMBICUBOCTAHEDRON: {
+			nyFN = new ObjCubeFN(Pos, Siz, Ori);
+			nyFN->expand(Siz.x*sqrt(.5));
+			break;
+		}
+
+		case OBJ_SNUBCUBE_CW:
+		case OBJ_SNUBCUBE_CCW: {
+			nyFN = new ObjCubeFN(Pos, Siz, Ori);
+			nyFN->expand(1.0);
+			nyFN->rotatePolygons(.12 * (objType==OBJ_SNUBCUBE_CCW? -1.0: 1.0), 4);
+			nyFN->splitBrokenTetragons();
+			break;
+		}
+
+
 		default:
 			cout << "finns inget like this objekt att plocka forward" << endl;
 			return 0;
@@ -2411,3 +2533,43 @@ std::list<ObjectFN*>* World::getObjectListPointer()
 	return &Objs;
 }
 
+/*void ObjectFN::tabort()
+{
+
+	cout << "edges from andra: " << F[0].from->oppo->prev->oppo->next->oppo->face->countEdges() << endl;
+	Vec Ax = V[21].X-F[0].getCenter();
+	Ax.norm();
+	Vec Az = F[0].Norm;
+	Vec Ay = Az&Ax;
+	cout << "Ax: " << Ax << endl;
+	cout << "Ay: " << Ay << endl;
+	cout << "Az: " << Az << endl;
+
+	Vec Bx = V[4].X-F[5].getCenter();
+	Bx.norm();
+	Vec Bz = F[5].Norm;
+	Vec By = Bz&Bx;
+	cout << "Bx: " << Bx << endl;
+	cout << "By: " << By << endl;
+	cout << "Bz: " << Bz << endl;
+
+	cout << Ax*Bx << ", " << Ax*By << ", " << Ax*Bz << endl;
+	cout << Ay*Bx << ", " << Ay*By << ", " << Ay*Bz << endl;
+	cout << Az*Bx << ", " << Az*By << ", " << Az*Bz << endl;
+
+	setPolygonHeight(1.9809159472818407 / 2., 5);
+
+	cout << "edge[0].len = " << E[0].length() << endl;
+	cout << "edge[149].len = " << E[149].length() << endl;
+	cout << "edge[255].len = " << E[255].length() << endl;
+
+	
+	rotatePolygons(.22874989202202764, 5);
+
+	cout << "\tedge[0].len = " << E[0].length() << endl;
+	cout << "\tedge[149].len = " << E[149].length() << endl;
+	cout << "\tedge[240].len = " << E[240].length() << endl;
+	cout << "\tedge[255].len = " << E[255].length() << endl;
+
+	test(1);
+}*/

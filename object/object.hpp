@@ -4,7 +4,7 @@
 #define OBJ_DIR_CW						0
 #define OBJ_DIR_CCW						1
 
-#define OBJ_SIMPLE						19
+
 #define OBJ_CUBE						10
 #define OBJ_TRUNCATED_ICOSAHEDRON		11
 #define OBJ_TETRAHEDRON					12
@@ -14,8 +14,18 @@
 #define OBJ_ICOSAHEDRON 				16
 #define OBJ_OCTAHEDRON 					17
 #define OBJ_TRUNCATED_CUBE				18
+#define OBJ_SIMPLE						19
 #define OBJ_ICOSIDODECAHEDRON			20
 #define OBJ_CUBOCTAHEDRON				21
+#define OBJ_RHOMBICOSIDODECAHEDRON		22
+#define OBJ_SNUBDODECAHEDRON			23
+#define OBJ_SNUBDODECAHEDRON_CW			23
+#define OBJ_SNUBDODECAHEDRON_CCW		24
+#define OBJ_RHOMBICUBOCTAHEDRON			25
+#define OBJ_SNUBCUBE					26
+#define OBJ_SNUBCUBE_CW					26
+#define OBJ_SNUBCUBE_CCW				27
+
 
 
 
@@ -67,6 +77,7 @@ struct Edge {
 
 	void set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face);
 	void print(Vertex *V0, Edge *E0, Face *F0);
+	TYP length();
 };
 
 
@@ -98,9 +109,12 @@ public:
 	ObjectFN(int _vert, int _edge, int _face);
 	ObjectFN(std::string);
 
+	void edgeCompare(TYP&, TYP&);
+
 	ObjectFN *greenHousify(TYP b, TYP h);
 
 	bool subdivide1();		// makes pyramids of all surfaces
+	bool subdivide1(int n);	// makes pyramids of surfaces with n edges
 	
 	bool subdivide2();		// subdivides triangles to four trianlges
 	bool subdivide2(int n);	// divides every edge n times. subdivide2() = subdivide(2)
@@ -119,6 +133,7 @@ public:
 	bool expand(TYP val);		// val är en radiella förändringsfaktorn, val > 1.
 	bool rotatePolygons(TYP angle, int N);	// Rotate faces with N vertices by angle
 	bool splitBrokenTetragons();
+	bool setPolygonHeight(TYP h, int N);	// sätt höjden, h, på vertiecar från centrum på polygoner med N edges
 
 	Vec getCenter();
 
@@ -126,11 +141,13 @@ public:
 	bool transform(const Vec *Pos, const Vec *Siz, const Mat *Ori);	
 
 	TYP normalizeRadius();
+	bool normalizeNormals();
 	bool test(unsigned int shapeType_) const;
 
 	void print();
 
 	Face* getFaces(int &numOfFaces) const;
+
 };
 
 
