@@ -26,6 +26,10 @@
 #define OBJ_SNUBCUBE_CW					26
 #define OBJ_SNUBCUBE_CCW				27
 
+#define OBJ_GOLDBERG_0_1				OBJ_DODECAHEDRON
+#define OBJ_GOLDBERG_1_1				OBJ_TRUNCATED_TETRAHEDRON
+#define OBJ_GOLDBERG_1_2				1012
+
 
 
 
@@ -54,6 +58,7 @@ struct Vertex {
 	Vec Norm;
 
 	void print(const Vertex *zero);
+	int countEdges();
 };
 
 struct Face {
@@ -114,7 +119,7 @@ public:
 	ObjectFN *greenHousify(TYP b, TYP h);
 
 	bool subdivide1();		// makes pyramids of all surfaces
-	bool subdivide1(int n);	// makes pyramids of surfaces with n edges
+	bool subdivide1(int n, TYP height);	// makes pyramids of surfaces with n edges
 	
 	bool subdivide2();		// subdivides triangles to four trianlges
 	bool subdivide2(int n);	// divides every edge n times. subdivide2() = subdivide(2)
@@ -131,6 +136,7 @@ public:
 
 		//nya egdes får längden: val * sqrt(2 - 2*NA*NB),  där NA och NB är två grannsidors normaler.
 	bool expand(TYP val);		// val är en radiella förändringsfaktorn, val > 1.
+	bool expand2(TYP val);		// skapar hexagoner mellan edges, alla hörnpunkt i polyedern måste vara ansluten till 3 edges.
 	bool rotatePolygons(TYP angle, int N);	// Rotate faces with N vertices by angle
 	bool splitBrokenTetragons();
 	bool setPolygonHeight(TYP h, int N);	// sätt höjden, h, på vertiecar från centrum på polygoner med N edges
@@ -147,6 +153,9 @@ public:
 	void print();
 
 	Face* getFaces(int &numOfFaces) const;
+
+
+	void tabort();
 
 };
 

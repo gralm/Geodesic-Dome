@@ -97,6 +97,19 @@ void idle()
 
 int main(int argc, char** argv)
 {
+/*
+    cout.precision(18);
+    TYP x0, y0, x1, y1;
+
+    x0 = 0.1;
+    y0 = 0.00096184907519310;
+
+    x1 = 0.2;
+    y1 = 0.00316996358389127;
+
+    cout << (x0*y1 - x1*y0) / (y1 - y0) << endl;;*/
+    //return 0;
+
     cout << "Detta är subdivideringsversionen" << endl;
 
     glutInit(&argc, argv);
@@ -110,23 +123,36 @@ int main(int argc, char** argv)
 
     TYP c = cos(0.7);
     TYP s = sin(0.7);
-    
-    
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_SNUBDODECAHEDRON_CW, Vec(.6, .2, 0), Vec(1, 1, 1)*.5, Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj3 = World::addObjectFN(OBJ_SNUBDODECAHEDRON_CCW, Vec(-.6, .2, 0), Vec(1, 1, 1)*.5, Mat(1,0,0, 0,1,0, 0,0,1));
+
+    /*TYP sizz = 0.6;
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.6, Mat(1,0,0, 0,1,0, 0,0,1));
+    nyobj1->expand(sizz*1.0);
+    nyobj1->rotatePolygons(.22874989202202764, 5);
+    nyobj1->splitBrokenTetragons();
+    nyobj1->setPolygonHeight(1.9809159472818407 * sizz, 5);
+    nyobj1->normalizeNormals();
+    nyobj1->subdivide1(5, 0.11288050765445369*sizz);
+    nyobj1->makeDual();*/
+
+
+        
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.7, Mat(1,0,0, 0,1,0, 0,0,1));    
+    //nyobj1->subdivide1(5, 0.056440253827226845);
+    //nyobj1->tabort();
+    //nyobj1->expand2(1.0);
+    //nyobj1->test(1);
     //nyobj1->print();
-    nyobj1->test(1);
+    //nyobj1->makeDual();
 
-    ObjectFN *nyobj2 = nyobj1->greenHousify(.05, .05);
-    ObjectFN *nyobj4 = nyobj3->greenHousify(.05, .05);
-       //ObjectFN *nyobj2 = nyobj1->greenHousify(.07, .07);
+
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_GOLDBERG_1_2, Vec(0, 0, 0), Vec(1, 1, 1)*.6, Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj2 = nyobj1->greenHousify(0.08, 0.08);
+
+    Vec asdf(10, 0, 0);
+    nyobj1->transform(&asdf, 0, 0); 
     World::addObjectFN(nyobj2);
-    World::addObjectFN(nyobj4);
 
-    Vec movva(1, 1, 1);
-    movva *= .8;
-    nyobj1->transform(0, &movva, 0);
-    nyobj3->transform(0, &movva, 0);
+
 
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
     Graphic::createTexture(64, 64);

@@ -38,6 +38,15 @@ void check(Face *f, int l)
 		cout << l << ", Kass face: F[" << (f-frF__) << "]" << endl;
 }
 
+int Vertex::countEdges()
+{
+	int n = 1;
+	for (Edge *iterE = from->oppo->next; iterE != from && n<20; iterE = iterE->oppo->next)
+	{
+		n++; 
+	}
+	return n;
+}
 
 
 void Edge::set(Vertex* _V, Edge *_E, Face *_F, int _fr, int _to, int _next, int _prev, int _oppo, int _face)
@@ -876,9 +885,89 @@ bool ObjectFN::subdivide1()
 }
 
 
-bool ObjectFN::subdivide1(int n)	// makes pyramids of surfaces with n edges
+bool ObjectFN::subdivide1(int n, TYP height)	// makes pyramids of surfaces with n edges
 {
-	return false;
+	list<int> fList;
+
+	for (int f=0; f<numF; f++)
+	{
+		if (F[f].countEdges() == n)
+			fList.push_back(f);
+	}
+	int numFaces = fList.size();
+
+	//cout << "antal killar inuti: " << numFaces << endl;
+
+	if (numFaces <= 0)
+		return false;
+
+	Vertex *nyV = new Vertex[numV + numFaces];
+	Edge *nyE = new Edge[numE + 2*n*numFaces];
+	Face *nyF = new Face[numF + (n-1)*numFaces];
+	//cout << "[" << numV + numFaces << ", " << numE + 2*n*numFaces << ", " << numF + (n-1)*numFaces << "]" << endl;
+
+
+	CopyVEF(nyV, nyE, nyF);
+
+	//cout << "dessa killar is in fList" << endl;
+	for (list<int>::iterator itI = fList.begin(); itI != fList.end(); itI++)
+	{
+	//	cout << "face num: " << *itI << endl;
+
+		Edge *nextIterE, *iterE = nyF[*itI].from;
+
+		nyV[numV].X = nyF[*itI].getCenter() + nyF[*itI].Norm * height;
+		nyV[numV].from = &nyE[numE + 1];
+
+		for (int i=0; i<n; i++)
+		{
+			nextIterE = iterE->next;
+
+			if (i > 0) {
+				iterE->face = &nyF[numF + i - 1];
+				nyF[numF + i - 1].from = iterE;
+			}
+
+			nyE[numE + 2*i + 0].next = &nyE[numE + 2*i + 1];
+			nyE[numE + 2*i + 0].prev = iterE;
+			nyE[numE + 2*i + 0].oppo = (i==n-1? &nyE[numE + 1]: &nyE[numE + 2*i + 3]);
+			nyE[numE + 2*i + 0].fr = iterE->to;
+			nyE[numE + 2*i + 0].to = &nyV[numV];
+			nyE[numE + 2*i + 0].face = iterE->face;
+
+			nyE[numE + 2*i + 1].next = iterE;
+			nyE[numE + 2*i + 1].prev = &nyE[numE + 2*i];
+			nyE[numE + 2*i + 1].oppo = (i==0? &nyE[numE + 2*n - 2]: &nyE[numE + 2*i - 2]);
+			nyE[numE + 2*i + 1].fr = &nyV[numV];
+			nyE[numE + 2*i + 1].to = iterE->fr;
+			nyE[numE + 2*i + 1].face = iterE->face;
+
+			iterE->next = &nyE[numE + 2*i + 0];
+			iterE->prev = &nyE[numE + 2*i + 1];
+
+			iterE->face->update();
+
+			iterE = nextIterE;
+		}
+
+		numV++;
+		numE += 2*n;
+		numF += (n-1);
+		//cout << "[" << numV << ", " << numE << ", " << numF << "]" << endl;
+	}
+	cout << endl;
+
+
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
+
+	return true;
 }
 
 
@@ -2076,6 +2165,25 @@ bool ObjectFN::expand(TYP val) {		// val är en radiella förändringsfaktorn, v
 	return true;
 }
 
+bool ObjectFN::expand2(TYP height)
+{
+	for (int v=0; v<numV; v++)
+	{
+		if (V[v].countEdges() != 3)
+		{
+			cout << "Not all Vertices connected to three edges" << endl;
+			return false;
+		}
+	}
+
+	Vertex *nyV = new Vertex[numV*4];
+	Edge *nyE = new Edge[numE*2 + 6*numV];
+	Face *nyF = new Face[numF + numE/2];
+
+
+	return true;
+}
+
 
 
 	// bygger hörnen korrekt.
@@ -2488,6 +2596,21 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			break;
 		}
 
+		case OBJ_GOLDBERG_1_2:
+		{
+			cout << "hej" << endl;
+			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
+    		nyFN->expand(Siz.x*1.0);
+			nyFN->rotatePolygons(.22874989202202764, 5);
+    		nyFN->splitBrokenTetragons();
+    		nyFN->setPolygonHeight(1.9809159472818407 * Siz.x, 5);
+    		nyFN->normalizeNormals();
+    		//nyFN->subdivide1(5, 0.056440253827226845*2*Siz.x);
+    		nyFN->subdivide1(5, 0.11288050765445369*Siz.x);
+    		nyFN->makeDual();
+			break;
+		}
+
 
 		default:
 			cout << "finns inget like this objekt att plocka forward" << endl;
@@ -2533,43 +2656,19 @@ std::list<ObjectFN*>* World::getObjectListPointer()
 	return &Objs;
 }
 
-/*void ObjectFN::tabort()
+void ObjectFN::tabort()
 {
 
-	cout << "edges from andra: " << F[0].from->oppo->prev->oppo->next->oppo->face->countEdges() << endl;
-	Vec Ax = V[21].X-F[0].getCenter();
-	Ax.norm();
-	Vec Az = F[0].Norm;
-	Vec Ay = Az&Ax;
-	cout << "Ax: " << Ax << endl;
-	cout << "Ay: " << Ay << endl;
-	cout << "Az: " << Az << endl;
+	Vec A0 = F[39].getCenter();
+	Vec A1 = F[69].getCenter();
+	Vec A2 = F[12].getCenter();
+	Vec A3 = F[40].getCenter();
+	Vec A4 = F[5].getCenter();
+	Vec A5 = F[112].getCenter();
 
-	Vec Bx = V[4].X-F[5].getCenter();
-	Bx.norm();
-	Vec Bz = F[5].Norm;
-	Vec By = Bz&Bx;
-	cout << "Bx: " << Bx << endl;
-	cout << "By: " << By << endl;
-	cout << "Bz: " << Bz << endl;
+	cout.precision(18);
+	cout << "value 1: " << ((A1 - A0) & (A2 - A0)) * (A3 - A0) << endl;
+	cout << "value 2: " << ((A1 - A0) & (A2 - A0)) * (A4 - A0) << endl;
+	cout << "value 3: " << ((A1 - A0) & (A2 - A0)) * (A5 - A3) << endl;
 
-	cout << Ax*Bx << ", " << Ax*By << ", " << Ax*Bz << endl;
-	cout << Ay*Bx << ", " << Ay*By << ", " << Ay*Bz << endl;
-	cout << Az*Bx << ", " << Az*By << ", " << Az*Bz << endl;
-
-	setPolygonHeight(1.9809159472818407 / 2., 5);
-
-	cout << "edge[0].len = " << E[0].length() << endl;
-	cout << "edge[149].len = " << E[149].length() << endl;
-	cout << "edge[255].len = " << E[255].length() << endl;
-
-	
-	rotatePolygons(.22874989202202764, 5);
-
-	cout << "\tedge[0].len = " << E[0].length() << endl;
-	cout << "\tedge[149].len = " << E[149].length() << endl;
-	cout << "\tedge[240].len = " << E[240].length() << endl;
-	cout << "\tedge[255].len = " << E[255].length() << endl;
-
-	test(1);
-}*/
+}
