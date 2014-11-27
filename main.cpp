@@ -97,6 +97,7 @@ void idle()
 
 int main(int argc, char** argv)
 {
+    cout.precision(10);
 /*
     cout.precision(18);
     TYP x0, y0, x1, y1;
@@ -124,33 +125,22 @@ int main(int argc, char** argv)
     TYP c = cos(0.7);
     TYP s = sin(0.7);
 
-    /*TYP sizz = 0.6;
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.6, Mat(1,0,0, 0,1,0, 0,0,1));
-    nyobj1->expand(sizz*1.0);
-    nyobj1->rotatePolygons(.22874989202202764, 5);
-    nyobj1->splitBrokenTetragons();
-    nyobj1->setPolygonHeight(1.9809159472818407 * sizz, 5);
-    nyobj1->normalizeNormals();
-    nyobj1->subdivide1(5, 0.11288050765445369*sizz);
-    nyobj1->makeDual();*/
-
-
-        
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*.7, Mat(1,0,0, 0,1,0, 0,0,1));    
-    //nyobj1->subdivide1(5, 0.056440253827226845);
-    //nyobj1->tabort();
-    //nyobj1->expand2(1.0);
-    //nyobj1->test(1);
+        // height = 2.28522701785192517
+        // theta = 0.28713148757777626
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.0, Mat(1,0,0, 0,1,0, 0,0,1));
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CHAMFERED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
+    nyobj1->test(1);
+    /*ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
+    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
     //nyobj1->print();
-    //nyobj1->makeDual();
-
-
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_GOLDBERG_1_2, Vec(0, 0, 0), Vec(1, 1, 1)*.6, Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj2 = nyobj1->greenHousify(0.08, 0.08);
-
-    Vec asdf(10, 0, 0);
-    nyobj1->transform(&asdf, 0, 0); 
-    World::addObjectFN(nyobj2);
+    //nyobj1->test(1);
+    nyobj1->chamfer(0.57735);
+    //nyobj1->print();
+    cout << "pretest" << endl;
+    nyobj1->test(1);
+    cout << "posttest" << endl;
+    //return 0;
+*/
 
 
 
@@ -160,7 +150,7 @@ int main(int argc, char** argv)
 
 //  skrivet för att få igång normalerna
     {
-        GLfloat position0[] = {1.0, 1.0, 1.0, 0.5};
+        GLfloat position0[] = {10.0, 1.0, 1.0, 0.5};
         GLfloat diffuse0[] = {1.0, 1.0, 0.0, 1.0}; // Id term - Red
         GLfloat specular0[] = {1.0, 1.0, 1.0, 1.0}; // Is term - White
         GLfloat ambient0[] = {0.1, 0.1, 0.1, 1.0}; // Ia term - Gray
@@ -180,7 +170,7 @@ int main(int argc, char** argv)
         glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
 
             // andra ljsuet
-        GLfloat position1[] = {-1.0, -2.0, 0.0, 1.0};
+        GLfloat position1[] = {-10.0, -2.0, 0.0, 1.0};
         GLfloat diffuse1[] = {0.0, 0.0, 1.0, 1.0}; // Id term - Red
         GLfloat specular1[] = {1.0, 1.0, 1.0, 1.0}; // Is term - White
         GLfloat ambient1[] = {0.1, 0.1, 0.1, 1.0}; // Ia term - Gray

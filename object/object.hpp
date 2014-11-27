@@ -25,6 +25,8 @@
 #define OBJ_SNUBCUBE					26
 #define OBJ_SNUBCUBE_CW					26
 #define OBJ_SNUBCUBE_CCW				27
+#define OBJ_TRUNCATED_RHOMBIC_DODECAHEDRON	28
+#define OBJ_CHAMFERED_CUBE				28
 
 #define OBJ_GOLDBERG_0_1				OBJ_DODECAHEDRON
 #define OBJ_GOLDBERG_1_1				OBJ_TRUNCATED_TETRAHEDRON
@@ -69,7 +71,9 @@ struct Face {
 	void update();
 	Vec getCenter();
 	int countEdges();
+	void moveUp(TYP height);
 	TYP maxSinErr(int &N);		// , N = num of edges
+	void rotate(TYP rad);
 };
 
 struct Edge {
@@ -132,12 +136,13 @@ public:
 
 	bool truncate2(TYP val);	// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
 	bool rectify();				// truncate(val = 1.0)
-	bool snub(int n);
+	//bool snub(int n);
 
 		//nya egdes får längden: val * sqrt(2 - 2*NA*NB),  där NA och NB är två grannsidors normaler.
 	bool expand(TYP val);		// val är en radiella förändringsfaktorn, val > 1.
-	bool expand2(TYP val);		// skapar hexagoner mellan edges, alla hörnpunkt i polyedern måste vara ansluten till 3 edges.
+	bool chamfer(TYP val);		// skapar hexagoner mellan edges, alla hörnpunkt i polyedern måste vara ansluten till 3 edges.
 	bool rotatePolygons(TYP angle, int N);	// Rotate faces with N vertices by angle
+	bool snub(TYP h, TYP t, int N);
 	bool splitBrokenTetragons();
 	bool setPolygonHeight(TYP h, int N);	// sätt höjden, h, på vertiecar från centrum på polygoner med N edges
 
@@ -151,7 +156,6 @@ public:
 	bool test(unsigned int shapeType_) const;
 
 	void print();
-
 	Face* getFaces(int &numOfFaces) const;
 
 

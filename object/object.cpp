@@ -124,6 +124,29 @@ TYP Face::maxSinErr(int &N)		// N = num of edges
 	return sqrt(maxErr2);
 }
 
+void Face::moveUp(TYP height)
+{
+	Edge *iterE = from;
+	do {
+		iterE->fr->X += Norm*height;
+		iterE = iterE->next;
+	} while(iterE != from);
+}
+
+void Face::rotate(TYP rad)
+{
+	double c = cos(rad);
+	double s = sin(rad);
+	Vec C_ = getCenter();
+	Edge *iterE = from;
+	do {
+		Vec dNorm = Norm * (iterE->fr->X * Norm);
+		iterE->fr->X = dNorm + (iterE->fr->X - dNorm)*c + (Norm & iterE->fr->X)*s;
+		//iterE->fr->X = iterE->fr->X * c + (Norm & iterE->fr->X) * s;
+		iterE = iterE->next;
+	} while (iterE != from);
+}
+
 
 void Edge::print(Vertex *V0, Edge *E0, Face *F0)
 {
@@ -2165,8 +2188,10 @@ bool ObjectFN::expand(TYP val) {		// val är en radiella förändringsfaktorn, v
 	return true;
 }
 
-bool ObjectFN::expand2(TYP height)
+bool ObjectFN::chamfer(TYP height)		// samtliga vertices måste vara connectade till 3(6) edges
 {
+	bool printar = false;
+
 	for (int v=0; v<numV; v++)
 	{
 		if (V[v].countEdges() != 3)
@@ -2180,9 +2205,188 @@ bool ObjectFN::expand2(TYP height)
 	Edge *nyE = new Edge[numE*2 + 6*numV];
 	Face *nyF = new Face[numF + numE/2];
 
+	CopyVEF(nyV, nyE, nyF);
+	
 
-	return true;
+	for (int v=0; v<numV; v++)
+	{
+		Edge *iterE = nyV[v].from;
+
+
+		for (int j=0; j<3; j++)	{
+			if (printar)		cout << v << " : " << j << endl;
+			if (printar)		cout << "E[3].to = " << nyE[3].to - nyV << "\tE[2].to = " << nyE[2].to - nyV << endl;
+			if (printar)		cout << "iterE = nyE[" << iterE - nyE << "]" << endl;
+			Edge *nextIterE = iterE->oppo;
+			if (iterE->oppo >= nyE + numE) {
+				if (printar)		cout << "\tnextIterE = " << iterE->oppo-nyE << endl;
+				if (printar)		cout << "\tnextIterE = " << iterE->oppo->prev-nyE << endl;
+				if (printar)		cout << "\tnextIterE = " << iterE->oppo->prev->prev-nyE << endl;
+				if (printar)		cout << "\tnextIterE = " << iterE->oppo->prev->prev->prev-nyE << endl;
+				if (printar)		cout << "\tnextIterE = " << iterE->oppo->prev->prev->prev->oppo-nyE << endl;
+				nextIterE = iterE->oppo->prev->prev->prev->oppo;
+			}
+			if (printar)		cout << "nextIterE = nyE[" << nextIterE - nyE << "]" << endl;
+
+				// första vertices 
+			if (printar)		cout << "\tfirsta verticen" << endl;
+			if (printar)		cout << "nyE[" << iterE - nyE << "].fr = nyV[" << numV + 3*v + j << "]" << endl;
+			iterE->fr = nyV + numV + 3*v + j;
+			if (printar)		cout << "nyV[" << numV + 3*v + j << "].from = nyE[" << 2*numE + 6*v + 2*j << "]" << endl;
+			nyV[numV + 3*v + j].from = nyE + 2*numE + 6*v + 2*j;
+			nyV[numV + 3*v + j].X = nyV[v].X;
+			if (printar)		cout << "nyE[" << iterE->prev - nyE << "].to = nyV[" << iterE->fr - nyV << "]" << endl;
+			iterE->prev->to = iterE->fr;
+			//cout << "E[3].to = " << nyE[3].to - nyV << "\tE[2].to = " << nyE[2].to - nyV << endl;
+
+				// första edgen;
+			if (printar)		cout << "\tfirsta edgen" << endl;
+			if (printar)		cout << "nyE[" << iterE - nyE << "].oppo = nyE[" << iterE + numE - nyE << "]" << endl;
+			iterE->oppo = iterE + numE;
+			if (printar)		cout << "nyE[" << iterE->oppo - nyE << "].fr = nyV[" << iterE->to - nyV << "]" << endl;
+			iterE->oppo->fr = iterE->to;
+			if (printar)		cout << "nyE[" << iterE->oppo - nyE << "].to = nyV[" << iterE->fr - nyV << "]" << endl;
+			iterE->oppo->to = iterE->fr;
+			if (printar)		cout << "nyE[" << iterE->oppo - nyE << "].next = nyE[" << 2*numE + 6*v + 2*j << "]" << endl;
+			iterE->oppo->next = nyE + 2*numE + 6*v + 2*j;
+			if (printar)		cout << "nyE[" << iterE->oppo - nyE << "].oppo = nyE[" << iterE - nyE << "]" << endl;
+			iterE->oppo->oppo = iterE;
+			//cout << "E[3].to = " << nyE[3].to - nyV << "\tE[2].to = " << nyE[2].to - nyV << endl;
+				// andra edgen;
+			if (printar)		cout << "\tandra edgen" << endl;
+			if (printar)		cout << "nyE[" << iterE->oppo->next - nyE << "].fr = nyV[" << iterE->fr - nyV << "]" << endl;
+			iterE->oppo->next->fr = iterE->fr;
+			if (printar)		cout << "nyE[" << iterE->oppo->next - nyE << "].to = nyV[" << v << "]" << endl;
+			iterE->oppo->next->to = &nyV[v];
+			if (printar)		cout << "nyE[" << iterE->oppo->next - nyE << "].next = nyE[" << iterE->oppo->next + 1 - nyE << "]" << endl;
+			iterE->oppo->next->next = iterE->oppo->next + 1;
+			if (printar)		cout << "nyE[" << iterE->oppo->next - nyE << "].prev = nyE[" << iterE->oppo - nyE << "]" << endl;
+			iterE->oppo->next->prev = iterE->oppo;
+			if (printar)		cout << "nyE[" << iterE->oppo->next - nyE << "].oppo = nyE[" << iterE->oppo->next + (j==0? 5: -1) - nyE << "]" << endl;
+			iterE->oppo->next->oppo = iterE->oppo->next + (j==0? 5: -1);
+			//cout << "E[3].to = " << nyE[3].to - nyV << "\tE[2].to = " << nyE[2].to - nyV << endl;
+
+				// tredje edgen
+			if (printar)		cout << "\ttredje edgen" << endl;
+			if (printar)		cout << "nyE[" << iterE->oppo->next->next - nyE << "].fr = nyV[" << v << "]" << endl;
+			iterE->oppo->next->next->fr = &nyV[v];
+			if (printar)		cout << "nyE[" << iterE->oppo->next->next - nyE << "].to = nyV[" << numV + 3*v + (j==2? 0: j+1) << "]" << endl;
+			iterE->oppo->next->next->to = nyV + numV + 3*v + (j==2? 0: j+1);
+			if (printar)		cout << "nyE[" << iterE->oppo->next->next - nyE << "].next = nyE[" << nextIterE + numE - nyE << "]" << endl;
+			iterE->oppo->next->next->next = nextIterE + numE;
+
+			if (printar)		cout << "*nyE[" << (nextIterE + numE) - nyE << "].prev = nyE[" << iterE->oppo->next->next - nyE << "]" << endl;
+			(nextIterE + numE)->prev = iterE->oppo->next->next;
+
+			nyV[v].from = iterE->oppo->next->next;
+			iterE->oppo->next->next->next->fr = iterE->oppo->next->next->to;
+			//cout << "E[3].to = " << nyE[3].to - nyV << "\tE[2].to = " << nyE[2].to - nyV << endl;			 
+			
+
+			if (printar)		cout << "nyE[" << iterE->oppo->next->next - nyE << "].prev = nyE[" << iterE->oppo->next - nyE << "]" << endl;
+			iterE->oppo->next->next->prev = iterE->oppo->next;
+			if (printar)		cout << "nyE[" << iterE->oppo->next->next - nyE << "].oppo = nyE[" << iterE->oppo->next->next + (j==2? -5: 1) - nyE << "]" << endl;
+			iterE->oppo->next->next->oppo = iterE->oppo->next->next + (j==2? -5: 1);
+			//cout << "E[3].to = " << nyE[3].to - nyV << "\tE[2].to = " << nyE[2].to - nyV << endl;
+
+
+			nextIterE->oppo = nextIterE + numE;
+			//nextIterE->to = nyV + numV + 3*v + 1;
+
+			iterE = nextIterE->next;
+		}
+
+	}
+
+		
+		// fixa faces också
+	for (int e=numE; e<2*numE + 6*numV; e++)
+		nyE[e].face = 0;
+
+		// expandera ursprungliga ytor
+	for (int f=0; f<numF; f++)
+	{
+		if (printar)		cout << "fixa height on vertices kring face[" << f << "]" << endl;
+		nyF[f].moveUp(height);
+	}
+
+		// fixa alla Edges->face och alla face->norm
+	for (int e=0; e<numE; e++)
+	{
+		if (nyE[e].oppo->face != 0)
+			continue;
+
+		Edge *iterE = nyE[e].oppo;
+		int numOfE = 0;
+		do {
+			numOfE++;
+			iterE->face = nyF + numF;
+			if (printar)		cout << "nyE[" << iterE - nyE << "].face = nyF[" << numF << "]" << endl;
+			iterE = iterE->next;
+		} while(iterE != nyE[e].oppo || numOfE > 20);
+
+		nyF[numF].Norm = (iterE->to->X - iterE->fr->X) & (iterE->prev->prev->fr->X - iterE->fr->X);
+		nyF[numF].Norm.norm();
+		nyF[numF].from = iterE;
+		numF++;
+	}
+
+		// fixa alla nya verts positioner:
+		// Metod: http://mathworld.wolfram.com/Plane-PlaneIntersection.html
+	Vec _X[3], _N[3], _P, _tf;
+	for (int v=0; v<numV; v++)
+	{
+
+		_X[0] = nyV[v].from->to->X;
+		_X[1] = nyV[v].from->oppo->next->to->X;
+		_X[2] = nyV[v].from->prev->fr->X;
+		_N[0] = nyV[v].from->oppo->face->Norm;
+		_N[1] = nyV[v].from->prev->oppo->face->Norm;
+		_N[2] = nyV[v].from->face->Norm;
+		if (printar) {
+			cout << "\t\tV[" << v << "]" << endl;
+			cout << "X: ";
+			cout << "\t" << _X[0] << endl;
+			cout << "\t" << _X[1] << endl;
+			cout << "\t" << _X[2] << endl;
+			cout << "N: ";
+			cout << "\t" << _N[0] << endl;
+			cout << "\t" << _N[1] << endl;
+			cout << "\t" << _N[2] << endl;
+			cout << endl;
+		}
+		
+		//_tf
+		_P = (_N[1] & _N[2]) * (_N[0]*_X[0]);
+		_P += (_N[2] & _N[0]) * (_N[1]*_X[1]);
+		_P += (_N[0] & _N[1]) * (_N[2]*_X[2]);
+		_P /= _N[0] * (_N[1] & _N[2]);
+		if (printar) {
+			cout << "P: " << _P << endl;
+
+			cout << "0 0 0 = " << ((_P - _X[0]) * _N[0]);
+			cout << ", " << ((_P - _X[1]) * _N[1]);
+			cout << ", " << ((_P - _X[2]) * _N[2]) << endl;
+		}
+		nyV[v].X = _P;
+	}
+
+	delete[] V;
+	delete[] E;
+	delete[] F;
+
+	numV = numV*4;
+	numE = numE*2 + 3*numV/2;
+	
+	if (printar)		cout << "numV = " << numV << endl;
+	if (printar)		cout << "numE = " << numE << endl;
+	if (printar)		cout << "numF = " << numF << endl;
+
+	V = nyV;
+	E = nyE;
+	F = nyF;
 }
+
 
 
 
@@ -2408,6 +2612,23 @@ bool ObjectFN::rotatePolygons(TYP angle, int N)			// Rotate faces with N vertice
 	return true;
 }
 
+bool ObjectFN::snub(TYP h, TYP t, int N)	// rotera alla ytor med n kanter t radianer och expandera h
+{
+	int oldNumF = numF;
+	expand(h);
+	cout << "old num f = " << oldNumF << endl;
+	cout << "ny num f = " << numF << endl;
+	cout << "cos(t) = " << cos(t) << "\tsin(t) = " << sin(t) << endl;
+
+	for (int n=0; n<oldNumF; n++)
+	{
+		if (F[n].countEdges() == N)
+			F[n].rotate(t);
+	}
+
+	splitBrokenTetragons();
+}
+
 bool ObjectFN::splitBrokenTetragons()
 {
 	bool printar = false;
@@ -2587,18 +2808,8 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			break;
 		}
 
-		case OBJ_SNUBCUBE_CW:
-		case OBJ_SNUBCUBE_CCW: {
-			nyFN = new ObjCubeFN(Pos, Siz, Ori);
-			nyFN->expand(1.0);
-			nyFN->rotatePolygons(.12 * (objType==OBJ_SNUBCUBE_CCW? -1.0: 1.0), 4);
-			nyFN->splitBrokenTetragons();
-			break;
-		}
-
 		case OBJ_GOLDBERG_1_2:
 		{
-			cout << "hej" << endl;
 			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
     		nyFN->expand(Siz.x*1.0);
 			nyFN->rotatePolygons(.22874989202202764, 5);
@@ -2608,6 +2819,21 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
     		//nyFN->subdivide1(5, 0.056440253827226845*2*Siz.x);
     		nyFN->subdivide1(5, 0.11288050765445369*Siz.x);
     		nyFN->makeDual();
+			break;
+		}
+
+		case OBJ_SNUBCUBE_CW:
+		case OBJ_SNUBCUBE_CCW:
+		{
+			nyFN = new ObjCubeFN(Pos, Siz, Ori);
+			nyFN->snub(0.64261350892596258*Siz.x, (objType==OBJ_SNUBCUBE_CCW? 1.0: -1.0)*0.287413148757777626, 4);
+			break;
+		}
+
+		case OBJ_CHAMFERED_CUBE:
+		{
+			nyFN = new ObjCubeFN(Pos, Siz, Ori);
+			nyFN->chamfer(Siz.x * 2/sqrt(3));
 			break;
 		}
 
@@ -2658,17 +2884,7 @@ std::list<ObjectFN*>* World::getObjectListPointer()
 
 void ObjectFN::tabort()
 {
-
-	Vec A0 = F[39].getCenter();
-	Vec A1 = F[69].getCenter();
-	Vec A2 = F[12].getCenter();
-	Vec A3 = F[40].getCenter();
-	Vec A4 = F[5].getCenter();
-	Vec A5 = F[112].getCenter();
-
-	cout.precision(18);
-	cout << "value 1: " << ((A1 - A0) & (A2 - A0)) * (A3 - A0) << endl;
-	cout << "value 2: " << ((A1 - A0) & (A2 - A0)) * (A4 - A0) << endl;
-	cout << "value 3: " << ((A1 - A0) & (A2 - A0)) * (A5 - A3) << endl;
-
+	cout << "Face1: " << F[0].Norm << endl;
+	cout << "Face2: " << F[0].from->oppo->face->Norm << endl;
+	cout << "Face1*Face2: " << F[0].Norm * F[0].from->oppo->face->Norm << endl;
 }
