@@ -317,6 +317,17 @@ public:
         zx = x;     zy = y;
     }
 
+    matrix<T,3,3> inv()
+    {
+    	T _d = xx*yy*zz + yx*zy*xz + zx*xy*yz - xx*zy*yz - yx*xy*zz - zx*yy*xz;
+    	if (_d == 0)
+    		return matrix<T,3,3>(0,0,0, 0,0,0, 0,0,0);
+
+    	return matrix<T,3,3>(	yy*zz-zy*yz, zy*xz-xy*zz, xy*yz-yy*xz,
+    							yz*zx-zz*yx, zz*xx-xz*zx, xz*yx-yz*xx,
+    							yx*zy-zx*yy, zx*xy-xx*zy, xx*yy-yx*xy) / _d;
+    }
+
     inline void normalize()
     {
         T tf = sqrt(xx*xx + xy*xy + xz*xz);

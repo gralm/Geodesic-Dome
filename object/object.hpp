@@ -27,10 +27,13 @@
 #define OBJ_SNUBCUBE_CCW				27
 #define OBJ_TRUNCATED_RHOMBIC_DODECAHEDRON	28
 #define OBJ_CHAMFERED_CUBE				28
+#define OBJ_TRUNCATED_RHOMBIC_TRIACONTAHEDRON	29
+#define OBJ_CHAMFERED_DODECAHEDRON		OBJ_TRUNCATED_RHOMBIC_TRIACONTAHEDRON
 
 #define OBJ_GOLDBERG_0_1				OBJ_DODECAHEDRON
 #define OBJ_GOLDBERG_1_1				OBJ_TRUNCATED_TETRAHEDRON
 #define OBJ_GOLDBERG_1_2				1012
+#define OBJ_GOLDBERG_0_2				OBJ_CHAMFERED_DODECAHEDRON
 
 
 
@@ -43,6 +46,7 @@
 
 // https://www8.cs.umu.se/kurser/5DV009/HT08/handouts/HO%20E%20-%20Subdivision.pdf
 #include <vector>
+
 #include <list>
 #include "../defines.hpp"
 #include <cstring>

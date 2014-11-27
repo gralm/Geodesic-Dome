@@ -93,25 +93,24 @@ void idle()
 }
 
 
+    // lösning på kvadratisk ekvation
+TYP findYequalTo(TYP y, TYP x0, TYP x1, TYP x2, TYP y0, TYP y1, TYP y2, bool positive)
+{
+
+    Vec Y = Vec(y0, y1, y2);
+    Mat M(1, 1, 1, x0, x1, x2, x0*x0, x1*x1, x2*x2);
+    M = M.inv();
+    Vec Z = Y*M;
+
+    return (-Z.z + sqrt(Z.y*Z.y + 4*(y-Z.x)*Z.z)*(positive? 1.0: -1.0)) / (2*Z.z);
+
+}
+
 
 
 int main(int argc, char** argv)
 {
-    cout.precision(10);
-/*
-    cout.precision(18);
-    TYP x0, y0, x1, y1;
-
-    x0 = 0.1;
-    y0 = 0.00096184907519310;
-
-    x1 = 0.2;
-    y1 = 0.00316996358389127;
-
-    cout << (x0*y1 - x1*y0) / (y1 - y0) << endl;;*/
-    //return 0;
-
-    cout << "Detta är subdivideringsversionen" << endl;
+    cout.precision(9);
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -125,23 +124,8 @@ int main(int argc, char** argv)
     TYP c = cos(0.7);
     TYP s = sin(0.7);
 
-        // height = 2.28522701785192517
-        // theta = 0.28713148757777626
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_TETRAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.0, Mat(1,0,0, 0,1,0, 0,0,1));
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CHAMFERED_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
-    nyobj1->test(1);
-    /*ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBE, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
-    //ObjectFN *nyobj1 = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
-    //nyobj1->print();
-    //nyobj1->test(1);
-    nyobj1->chamfer(0.57735);
-    //nyobj1->print();
-    cout << "pretest" << endl;
-    nyobj1->test(1);
-    cout << "posttest" << endl;
-    //return 0;
-*/
-
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CHAMFERED_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
+  
 
 
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());

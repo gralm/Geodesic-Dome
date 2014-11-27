@@ -2830,12 +2830,23 @@ ObjectFN* World::addObjectFN(int objType, const Vec &Pos, const Vec &Siz, const 
 			break;
 		}
 
+			// hexagons har vinklarna acos(1/sqr(3) ~= 54,7 deg och
 		case OBJ_CHAMFERED_CUBE:
 		{
 			nyFN = new ObjCubeFN(Pos, Siz, Ori);
 			nyFN->chamfer(Siz.x * 2/sqrt(3));
 			break;
 		}
+
+		case OBJ_CHAMFERED_DODECAHEDRON:
+		{
+			//nyFN = World::addObjectFN(OBJ_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
+			nyFN = new ObjDodecahedronFN(Pos, Siz, Ori);
+    		//nyFN->chamfer(1.6180339888*Siz.x);
+    		nyFN->chamfer(1.6180339887498927*Siz.x);
+    		
+    		break;
+    	}
 
 
 		default:

@@ -12,6 +12,7 @@ bygg:
 	make -s $(OBJPATH)bitmap.o
 	make -s $(OBJPATH)graphic.o
 	make -s $(OBJPATH)object.o
+	make -s $(OBJPATH)object.o
 	make -s $(OBJPATH)objSimple.o
 	make -s $(OBJPATH)objCube.o
 	make -s $(OBJPATH)objDodecahedron.o
