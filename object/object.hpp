@@ -123,30 +123,32 @@ public:
 	ObjectFN(std::string);
 
 	void edgeCompare(TYP&, TYP&);
-
 	ObjectFN *greenHousify(TYP b, TYP h);
+	bool updateConsistsOfOnlyTriangles();
 
-	bool subdivide1();		// makes pyramids of all surfaces
+			// objectSubdivide.cpp
+	bool kleetope();		// makes kleetope of object
+	bool subdivide1();		// makes pyramids of all surfaces, kleetope-operator eller "kis" med conway-notation
 	bool subdivide1(int n, TYP height);	// makes pyramids of surfaces with n edges
-	
 	bool subdivide2();		// subdivides triangles to four trianlges
 	bool subdivide2(int n);	// divides every edge n times. subdivide2() = subdivide(2)
 
-	bool updateConsistsOfOnlyTriangles();
 
-		// http://en.wikipedia.org/wiki/Dual_polyhedron
+			// objectTruncate.cpp, http://en.wikipedia.org/wiki/Dual_polyhedron
 	bool makeDual();
 	bool truncate(TYP val);		// 0 < val < 1,		0 < truncated < 1, rectified = 1.0;
-
-	bool truncate2(TYP val);	// 0 < val < 1,		truncated = 0.5, rectified = 1.0;
 	bool rectify();				// truncate(val = 1.0)
-	//bool snub(int n);
 
-		//nya egdes får längden: val * sqrt(2 - 2*NA*NB),  där NA och NB är två grannsidors normaler.
+			// objectExpand.cpp, nya egdes får längden: val * sqrt(2 - 2*NA*NB),  där NA och NB är två grannsidors normaler.
 	bool expand(TYP val);		// val är en radiella förändringsfaktorn, val > 1.
 	bool chamfer(TYP val);		// skapar hexagoner mellan edges, alla hörnpunkt i polyedern måste vara ansluten till 3 edges.
+		// cantellation
+		//
+
+
 	bool rotatePolygons(TYP angle, int N);	// Rotate faces with N vertices by angle
 	bool snub(TYP h, TYP t, int N);
+	bool alternate(bool removeFirstVertice);
 	bool splitBrokenTetragons();
 	bool setPolygonHeight(TYP h, int N);	// sätt höjden, h, på vertiecar från centrum på polygoner med N edges
 

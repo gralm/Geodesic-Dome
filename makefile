@@ -13,6 +13,9 @@ bygg:
 	make -s $(OBJPATH)graphic.o
 	make -s $(OBJPATH)object.o
 	make -s $(OBJPATH)object.o
+	make -s $(OBJPATH)objectSubdivide.o
+	make -s $(OBJPATH)objectTruncate.o
+	make -s $(OBJPATH)objectExpand.o
 	make -s $(OBJPATH)objSimple.o
 	make -s $(OBJPATH)objCube.o
 	make -s $(OBJPATH)objDodecahedron.o
@@ -34,6 +37,15 @@ $(OBJPATH)graphic.o: graphic/graphic.cpp
 
 $(OBJPATH)object.o: object/object.cpp
 	$(CC) $(OBJFLAGS) $(OBJPATH)object.o object/object.cpp -I $(INC_DIR)
+
+$(OBJPATH)objectSubdivide.o: object/objectSubdivide.cpp
+	$(CC) $(OBJFLAGS) $(OBJPATH)objectSubdivide.o object/objectSubdivide.cpp -I $(INC_DIR)
+
+$(OBJPATH)objectTruncate.o: object/objectTruncate.cpp
+	$(CC) $(OBJFLAGS) $(OBJPATH)objectTruncate.o object/objectTruncate.cpp -I $(INC_DIR)
+
+$(OBJPATH)objectExpand.o: object/objectExpand.cpp
+	$(CC) $(OBJFLAGS) $(OBJPATH)objectExpand.o object/objectExpand.cpp -I $(INC_DIR)	
 
 $(OBJPATH)objSimple.o: object/objSimple.cpp
 	$(CC) $(OBJFLAGS) $(OBJPATH)objSimple.o object/objSimple.cpp -I $(INC_DIR)

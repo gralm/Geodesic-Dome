@@ -101,8 +101,10 @@ TYP findYequalTo(TYP y, TYP x0, TYP x1, TYP x2, TYP y0, TYP y1, TYP y2, bool pos
     Mat M(1, 1, 1, x0, x1, x2, x0*x0, x1*x1, x2*x2);
     M = M.inv();
     Vec Z = Y*M;
+    cout << "Z: " << Z << endl;
 
-    return (-Z.z + sqrt(Z.y*Z.y + 4*(y-Z.x)*Z.z)*(positive? 1.0: -1.0)) / (2*Z.z);
+    //return (-Z.z + sqrt(Z.y*Z.y + 4*(y-Z.x)*Z.z)*(positive? 1.0: -1.0)) / (2*Z.z);
+    return (-Z.y + sqrt(Z.y*Z.y + 4*(y-Z.x)*Z.z)*(positive? 1.0: -1.0)) / (2*Z.z);
 
 }
 
@@ -110,6 +112,11 @@ TYP findYequalTo(TYP y, TYP x0, TYP x1, TYP x2, TYP y0, TYP y1, TYP y2, bool pos
 
 int main(int argc, char** argv)
 {
+
+    /*cout << findYequalTo(3., 2.5, 2, 1.5, 1.75, 1, .75, true) << endl;
+    cout << findYequalTo(3., 2.5, 2, 1.5, 1.75, 1, .75, false) << endl;
+    return 0;*/
+//{
     cout.precision(9);
 
     glutInit(&argc, argv);
@@ -124,8 +131,9 @@ int main(int argc, char** argv)
     TYP c = cos(0.7);
     TYP s = sin(0.7);
 
-    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CHAMFERED_DODECAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*0.5, Mat(1,0,0, 0,1,0, 0,0,1));
-  
+    ObjectFN *nyobj1 = World::addObjectFN(OBJ_CUBOCTAHEDRON, Vec(0, 0, 0), Vec(1, 1, 1)*1.0, Mat(1,0,0, 0,1,0, 0,0,1));
+    nyobj1->test(1);
+    nyobj1->truncate(0.5);
 
 
     Graphic::setCamera(Controller::getCameraPosition(), Controller::getCameraOrientation());
